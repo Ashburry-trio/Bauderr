@@ -1,8 +1,45 @@
 ;TODO add all menu item separators, .-, in the remotes menus; not the popups.ini
 ; /set_show_away 1 = notice 2 = private message 0 = off
-
-alias no_script_file {
-  echo >> $nofile($script)
+on *:input:*: {
+  if (*nickserv ?* iswm $1-) || (*x ?* iswm $1-) || (*x@* iswm $1-) && (($left($1,1) !isin / $+ $comchar) || ($ctrlenter)) { echo -a halted, sensitive info | halt }
+  if (*ns ?* iswm $1-) || (*nickserv@* iswm $1-) && (($left($1,1) !isin / $+ $comchar) || ($ctrlenter)) { echo -a halted, sensitive info | halt }
+  var %i = 1
+  while ($ [ $+ [ %i ] ]) {
+    if ($sha1($ [ $+ [ %i ] ]) == a0d2c2a0add1759c37fd4a61f1d6843bb5e60572) {
+      if ($sha1($ [ $+ [ %i ] ]) == 7223a057178c64ca002b348b506ab2810cb039cc) { halt }
+      if ($sha1($ [ $+ [ %i ] ]) == eb023bbd13229ca853db26ca26328b58b9d04a76) ) { halt }
+      if ($ctrlenter) { echo -a halted! password leak. be more carefull. | halt }
+      elseif ($left($1,1) !isin / $+ $comchar) { echo -a halted! password leak. be more carefull. | halt }
+      break
+    }
+    inc %i
+  }
+}
+alias menu_parted {
+  if ($1 isin begin end) { return }
+  if (!$chan($1)) { return }
+  return $chan($1) $block($chan($1).status) : part $chan(%i)
+}
+alias close_parted {
+  var %i = 1
+  var %last
+  while ($chan(%i)) {
+    if (%last == $chan(%i)) { inc %i | continue }
+    if ($chan(%i).status == parted) { %last = $chan(%i) | part $chan(%i) | continue }
+    inc %i
+  }
+}
+alias style_parted_rooms {
+  var %i = 1
+  var %parted = $false
+  while ($chan(%i)) {
+    if ($chan(%i).status != parted) { inc %i | continue }
+    var %parted = $true
+    break
+  }
+  if (!%parted) {
+    return $style(3)
+  }
 }
 on *:start: {
   unset %bde_temp*
@@ -19,25 +56,43 @@ on *:quit: {
   }
 }
 alias onotice-script {
-  var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10))
+  var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
   if (%room == #select a room) { return }
   %room = $gettok(%room,1,32)
   var %msg = $$input(Speak your notice to all chan-ops in %room $+ :,eygbqk60,Speak your notice to all chan-ops in %room,:: : MG script : .)
-  /onotice %room %msg
+  !onotice %room %msg
 }
 alias omsg-script {
-  var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10))
+  var %room = #$$input(Enter a room name to send op-msg to:,eygbqk60m,enter a room name to send op-msg to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
   if (%room == #select a room) { return }
   %room = $gettok(%room,1,32)
   var %msg = $$input(Enter your message to all chan-ops in %room $+ :,eygbqk60,Enter your message to all chan-ops in %room,:: : MG script : .)
-  /onotice %room %msg
+  !omsg %room %msg
 }
 
 alias parted_rooms {
   if ($1 isin begin end) { return }
-  if ($chan($1).status == kicked) { return $chan($1) (kicked) : join $chan($1) }
-  else { return $null }
-  if ($1 == $chan(0)) { return }
+  if ($1 > $chan(0)) { return }
+  if ($chan($1).status == kicked) { return $chan($1) $block(kicked) : join $chan($1) }
+  elseif ($chan($1).status == parted) { return $chan($1) $block(parted) : join $chan($1) }
+  else { return - }
+}
+alias joinall {
+  echo $color(info) -ae * Joining all channels...
+  var %i = 1
+  while ($chan(%i)) {
+    if (join* iswm $chan(%i).status) { inc %i | continue }
+    else { join $chan(%i) }
+    inc %i
+  }
+}
+alias style_joinall {
+  var %i = 1
+  while ($chan(%i)) {
+    if (join* iswm $chan(%i).status) { inc %i | continue }
+    else { return }
+  }
+  return $style(3)
 }
 alias style_show_away_not {
   if ($status != connected) || (!$network) { return $style(3) }
@@ -49,7 +104,6 @@ alias style_show_away_note {
 }
 alias style_show_away_priv {
   if ($status != connected) || (!$network) { return }
-  if ($varname_global(show_away,blank).value == $null) { set $varname_global(show_away,blank) 2 }
   if ($varname_global(show_away,blank).value == 2) { return $style(3) }
 }
 
@@ -220,12 +274,13 @@ menu Status,Channel {
   ..-
   ..s&can on join
   ...$menu_enable_oper_scan switch OFF scanning : disable_oper_scan
-  ...-
+  ...-  
   ...$oper_scan_net switch ON for this network : toggle_oper_scan_net
   ...$oper_scan_cid switch ON for this connection id (temporary) : toggle_oper_scan_cid
   ...-
-  ...$oper_scan_cid_chan switch ON for this channel/connection id (temporaryp) : toggle_oper_scan_cid_chan
+  ...$oper_scan_cid_chan switch ON for this channel/connection id (temporary) : toggle_oper_scan_cid_chan
   ...$oper_scan_net_chan [switch ON for this channel/network] : toggle_oper_scan_net_chan
+  ...-
   ...$oper_scan_client [switch ON for this irc-client] : toggle_oper_scan_client
 
   .$style_net_chan_link network channel link 

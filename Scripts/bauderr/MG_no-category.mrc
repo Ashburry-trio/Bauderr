@@ -3,6 +3,7 @@ on *:start: {
 }
 alias bde_start {
   !.bigfloat off
+  !.switchbar off
   !.sound on
   !.menubar on
   !.treebar on
@@ -13,8 +14,8 @@ alias bde_start {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
 }
 
-on *:text:*:$chr(42) $+ status[mg]: {
-  if ($1- == trio-ircproxy active) {
+on *:text:*:$chr(42) $+ status: {
+  if ($1- == :trio-ircproxy active) {
     set -e $varname_cid(trio-ircproxy.py,active) $true
     msg $nick mg-script active
   }
