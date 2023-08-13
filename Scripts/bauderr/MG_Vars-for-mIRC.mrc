@@ -28,7 +28,7 @@
 %bde_glob_sound-history#1 "C:\Users\USER\Music\Spice_1-Amerikkkas_Nightmare-1994-GCP_INT\12-spice_1-stickin_to_the_g_code_(prod_dj_slip)-gcp.mp3"
 %bde_glob_bad_script_warn#UnderNet#mirc_wavs'n'text $false
 %bde_glob_show_away#blank 1
-%bauderr_version v11.15.1
+%bauderr_version PEACE
 %check2
 %bde_glob_topic-history-off#blank $false
 %a %b
