@@ -184,6 +184,14 @@ alias -l style_net_chan_link {
   if (!$chan) { return }
   if ($varname_global(network-link,$chan).value) { return $style(1) }
 }
+alias style_add_topic_history {
+  if (!$chan) { return $style(2) }
+  var %i = $var(%bde_glob_topic_history_#kuwait#*,0)
+  while (%i > 0) {
+    if ([ [ $var(%bde_glob_topic_history_#kuwait#*,%i) ] ] === $chan($chan).topic) { return $style(3) }
+    dec %i
+  }
+}
 menu Status,Channel {
   $chr(46) $chr(58) M&achine Gun $str($chr(58),2) $chr(58)
   .$style_proxy $chr(46) $chr(58) describe mg $str($chr(58),2) $chr(58)
@@ -207,18 +215,66 @@ menu Status,Channel {
   -
   &room functions
   .&chanserv
-  ..$identify_here_popup : /bnc_msg identify-chanserv $$chan 
+  ..$identify_here_popup : /msg *status identify $$chan 
   ..$popup-identify-founder-list
   ...$submenu($identify_chans_popup($1))
   .topi&c history
-  ..$submenu($topic_history_popup($1))
+  ..$topic_history_pops(1)
+  ...echo topic : echo -ae $topic_history_pops(1).topic
+  ...remove this topic : topic_history_remove 1
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(1).topic
+  ..$topic_history_pops(2)
+  ...echo topic : echo -ae $topic_history_pops(2).topic
+  ...remove this topic : topic_history_remove 2
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(2).topic
+  ..$topic_history_pops(3)
+  ...echo topic : echo -ae $topic_history_pops(3).topic
+  ...remove this topic : topic_history_remove 3
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(3).topic
+  ..$topic_history_pops(4)
+  ...echo topic : echo -ae $topic_history_pops(4).topic
+  ...remove this topic : topic_history_remove 4
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(4).topic
+  ..$topic_history_pops(5)
+  ...echo topic : echo -ae $topic_history_pops(5).topic
+  ...remove this topic : topic_history_remove 5
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(5).topic
+  ..$topic_history_pops(6)
+  ...echo topic : echo -ae $topic_history_pops(6).topic
+  ...remove this topic : topic_history_remove 6
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(6).topic
+  ..$topic_history_pops(7)
+  ...echo topic : echo -ae $topic_history_pops(7).topic
+  ...remove this topic : topic_history_remove 7
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(7).topic
+  ..$topic_history_pops(8)
+  ...echo topic : echo -ae $topic_history_pops(8).topic
+  ...remove this topic : topic_history_remove 8
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(8).topic
+  ..$topic_history_pops(9)
+  ...echo topic : echo -ae $topic_history_pops(9).topic
+  ...remove this topic : topic_history_remove 9
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(9).topic
+  ..$topic_history_pops(10)
+  ...echo topic : echo -ae $topic_history_pops(10).topic
+  ...remove this topic : topic_history_remove 10
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(10).topic
+
   ..-
-  ..$iif(($eval($var($varname_global(topic_history_ $+ $chan,*),1),1) == $null || (!$chan)),$style(3)) erase topic history for channel : unset $varname_global(topic_history_ $+ $chan,*) | eecho -sep topic history cleared for room $chan
-  ..$iif(($eval($var($varname_global(topic_history_*,*),1),1) == $null),$style(3)) erase entire topic history : unset $varname_global(topic_history_*,*) | eecho -sep topic history for ALL channels is cleared
+  ..$iif(($eval($var($varname_global(topic_history_ $+ $chan,*),1),1) == $null || (!$chan)),$style(3)) erase topic history for room : unset $varname_global(topic_history_ $+ $chan,*) | eecho -sep topic history cleared for room $chan
+  ..$iif(($var($varname_global(topic_history_*,*),0) == 0),$style(3)) erase entire topic history : unset $varname_global(topic_history_*,*) | eecho -sep topic history for ALL channels is cleared
   ..-
-  ..$iif((!$chan),$style(2)) add this topic to history : topic_history_add $chan $chan($chan).topic
-  ..-
-  ..$iif(($varname_global(topic-history-off,blank).value == $true),$style(1)) turn OFF topic history : set $varname_global(topic-history-off,blank) $iif(($varname_global(topic-history-off,blank).value == $true),$false,$true)
+  ..$style_add_topic_history add this topic to history : topic_history_add $chan $chan($chan).topic
   .-
   .[&allow prevention]
   ..$style_allow_ascii &allow ascii-art

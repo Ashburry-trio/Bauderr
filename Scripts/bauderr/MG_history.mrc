@@ -25,9 +25,9 @@ alias topic_history_remove {
 }
 alias topic_history_add {
   exp_topics
-  if ($varname_global(topic-history-off,blank).value) { return }
   var %chan = $strip($1)
   if ($len(%chan) < 2) || ($left(%chan,1) != $chr(35)) { return }
+  if ($var($varname_global(topic_history_ $+ %chan,*),0) >= 10) { remove_oldest_topic %chan }
   set -ln %topic $strip($2-)
   set -ln %topic_32 $remove(%topic,$chr(32))
   if (%topic_32 == $null) { return }
@@ -35,14 +35,34 @@ alias topic_history_add {
   var %check = $varname_global(topic_history_ $+ %chan,*)
   var %varname
   :loop
-  if (%i >= 15) { return }
   inc %i
+  if (%i > 10) { return }
   %varname = $var($eval(%check,1),%i)
   if (!%varname) { goto end }
   if ([ [ %varname ] ] === $2-) { return }
   goto loop
   :end
   set -n $varname_global(topic_history_ $+ %chan,$ctime) $2-
+}
+alias -l remove_oldest_topic {
+  var %chan = #$$1
+  var %i = 0
+  var %oldctime = 0
+  :loop
+  inc %i
+  var %newctime = $gettok($var($varname_global(topic_history_ $+ %chan,*),%i),-1,35)
+  if (%newctime == $null) { return }
+  if (%newctime > %oldctime) { %oldctime = %newctime }
+  goto loop
+  if (%newctime) && (%oldctime) { echo unset $var($varname_global(topic_history_ $+ %chan,*),%i) | unset $var($varname_global(topic_history_ $+ %chan,*),%i)  }
+}
+alias topic_history_pops {
+  if ($var($varname_global(topic_history_ $+ $active,*),$1) == $null) { return $null }
+  var %pop = $eval($var($varname_global(topic_history_ $+ $active,*),$1),2)
+  if ($prop == topic) { return %pop }
+  var %pop = $strip(%pop)
+  if ($len(%pop) > 60) { return $left(%pop, 58) $+ ... }
+  else { return $%pop }
 }
 alias topic_history_popup {
   if ($1 == begin) { return }
