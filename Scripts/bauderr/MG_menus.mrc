@@ -1,33 +1,44 @@
 ;TODO add all menu item separators, .-, in the remotes menus; not the popups.ini
 ; /set_show_away 1 = notice 2 = private message 0 = off
-on *:input:*: {
-  if (*nickserv ?* iswm $1-) || (*x ?* iswm $1-) || (*x@* iswm $1-) && (($left($1,1) !isin / $+ $comchar) || ($ctrlenter)) { echo -a halted, sensitive info | halt }
-  if (*ns ?* iswm $1-) || (*nickserv@* iswm $1-) && (($left($1,1) !isin / $+ $comchar) || ($ctrlenter)) { echo -a halted, sensitive info | halt }
-  var %i = 1
-  while ($ [ $+ [ %i ] ]) {
-    if ($sha1($ [ $+ [ %i ] ]) == a0d2c2a0add1759c37fd4a61f1d6843bb5e60572) {
-      if ($sha1($ [ $+ [ %i ] ]) == 7223a057178c64ca002b348b506ab2810cb039cc) { halt }
-      if ($sha1($ [ $+ [ %i ] ]) == eb023bbd13229ca853db26ca26328b58b9d04a76) ) { halt }
-      if ($ctrlenter) { echo -a halted! password leak. be more carefull. | halt }
-      elseif ($left($1,1) !isin / $+ $comchar) { echo -a halted! password leak. be more carefull. | halt }
-      break
-    }
-    inc %i
-  }
-}
 alias menu_parted {
-  if ($1 isin begin end) { return }
-  if (!$chan($1)) { return }
-  return $chan($1) $block($chan($1).status) : part $chan(%i)
+  if ($1 isin endbegin) { return }
+  if (!$chan($1)) { return - }
+  return $chan($1) $block($chan($1).status) : part $chan($1)
 }
 alias close_parted {
   var %i = 1
   var %last
   while ($chan(%i)) {
-    if (%last == $chan(%i)) { inc %i | continue }
-    if ($chan(%i).status == parted) { %last = $chan(%i) | part $chan(%i) | continue }
-    inc %i
+    if (join* !iswm $chan(%i).status) { 
+      %last = $chan(%i)
+      part $chan(%i)
+    }
+    if ($chan(%i) == %last) { inc %i }
+    continue 
   }
+}
+alias oldnick {
+  if ($varname_global(old_nick,$$1).value != $null) { return $ifmatch }
+}
+alias old_nick_islisted {
+  var %i = 0
+  :loop
+  if (%i == 10) { return $false }
+  inc %i
+  if ($varname_global(old_nick,%i).value == $$1) { return $true }
+  goto loop
+}
+alias old_nick_add {
+  if ($old_nick_islisted($1) == $true) { return }
+  var %i = 0
+  :loop
+  if (%i == 10) { set $varname_global(old_nick,$rands(1,10)) $1 | return }
+  inc %i
+  if ($varname_global(old_nick,%i).value == $null) { set $varname_global(old_nick,%i) $1 | return }
+  goto loop
+}
+on *:nick: {
+  if ($nick == $me) { old_nick_add $me | old_nick_add $newnick }
 }
 alias style_parted_rooms {
   var %i = 1
@@ -184,16 +195,26 @@ alias -l style_net_chan_link {
   if (!$chan) { return }
   if ($varname_global(network-link,$chan).value) { return $style(1) }
 }
-alias style_add_topic_history {
-  if (!$chan) { return $style(2) }
-  var %i = $var(%bde_glob_topic_history_#kuwait#*,0)
-  while (%i > 0) {
-    if ([ [ $var(%bde_glob_topic_history_#kuwait#*,%i) ] ] === $chan($chan).topic) { return $style(3) }
-    dec %i
-  }
+alias dq {
+  echo State: $iif($dqwindow & 1,enabled,not enabled)
+
+  echo State: $iif($dqwindow & 2,open,not open)
+
+  echo State: $iif($dqwindow & 4,opening,not opening)
+
+  echo State: $iif($dqwindow & 8,writing,not writing)
+
+  echo State: $iif($dqwindow & 16,written,not written)
+
 }
+
 menu Status,Channel {
   $chr(46) $chr(58) M&achine Gun $str($chr(58),2) $chr(58)
+  .encrypt passwords
+  ..set main password
+  ..remove main password
+  ..-
+  ..show passords
   .$style_proxy $chr(46) $chr(58) describe mg $str($chr(58),2) $chr(58)
   ..$advertise-chan : /describe $chan is using Machine Gun mSL script named Bauderr. use ctcp version/script/source for more info.
   ..$advertise-in-channel
@@ -218,63 +239,7 @@ menu Status,Channel {
   ..$identify_here_popup : /msg *status identify $$chan 
   ..$popup-identify-founder-list
   ...$submenu($identify_chans_popup($1))
-  .topi&c history
-  ..$topic_history_pops(1)
-  ...echo topic : echo -ae $topic_history_pops(1).topic
-  ...remove this topic : topic_history_remove 1
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(1).topic
-  ..$topic_history_pops(2)
-  ...echo topic : echo -ae $topic_history_pops(2).topic
-  ...remove this topic : topic_history_remove 2
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(2).topic
-  ..$topic_history_pops(3)
-  ...echo topic : echo -ae $topic_history_pops(3).topic
-  ...remove this topic : topic_history_remove 3
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(3).topic
-  ..$topic_history_pops(4)
-  ...echo topic : echo -ae $topic_history_pops(4).topic
-  ...remove this topic : topic_history_remove 4
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(4).topic
-  ..$topic_history_pops(5)
-  ...echo topic : echo -ae $topic_history_pops(5).topic
-  ...remove this topic : topic_history_remove 5
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(5).topic
-  ..$topic_history_pops(6)
-  ...echo topic : echo -ae $topic_history_pops(6).topic
-  ...remove this topic : topic_history_remove 6
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(6).topic
-  ..$topic_history_pops(7)
-  ...echo topic : echo -ae $topic_history_pops(7).topic
-  ...remove this topic : topic_history_remove 7
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(7).topic
-  ..$topic_history_pops(8)
-  ...echo topic : echo -ae $topic_history_pops(8).topic
-  ...remove this topic : topic_history_remove 8
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(8).topic
-  ..$topic_history_pops(9)
-  ...echo topic : echo -ae $topic_history_pops(9).topic
-  ...remove this topic : topic_history_remove 9
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(9).topic
-  ..$topic_history_pops(10)
-  ...echo topic : echo -ae $topic_history_pops(10).topic
-  ...remove this topic : topic_history_remove 10
-  ...-
-  ...set this topic : topic $chan $topic_history_pops(10).topic
 
-  ..-
-  ..$iif(($eval($var($varname_global(topic_history_ $+ $chan,*),1),1) == $null || (!$chan)),$style(3)) erase topic history for room : unset $varname_global(topic_history_ $+ $chan,*) | eecho -sep topic history cleared for room $chan
-  ..$iif(($var($varname_global(topic_history_*,*),0) == 0),$style(3)) erase entire topic history : unset $varname_global(topic_history_*,*) | eecho -sep topic history for ALL channels is cleared
-  ..-
-  ..$style_add_topic_history add this topic to history : topic_history_add $chan $chan($chan).topic
   .-
   .[&allow prevention]
   ..$style_allow_ascii &allow ascii-art
@@ -284,12 +249,10 @@ menu Status,Channel {
   ...$style_allow_repeat &allow repeat 6x : set_allow_room_repeat
   ...$style_allow_rand_text [&allow random text] : set_allow_room_random_text
   ...-
-  ...$style_allow_ascii allow ascii-art (everything) : set_allow_asciiart
+  ...$style_allow_ascii allow ascii-art (Every Thing) : set_allow_asciiart
   ; menu
   ..$style_bad_script_menu &allow bad scripts
-  ...$style_bad_script allow bad scripts : set_allow_bad_script
-  ...$style_bad_script_warn warning : set_allow_bad_script_warn
-  ...$style_bad_script_ban [2hr ban] : set_allow_room_bad_script_ban
+  ...$style_bad_script_ban &do not allow bad scripts : set_allow_bad_scripts
   ...-
   ...open bad script list : open_bad_script
   ; menu
@@ -320,7 +283,7 @@ menu Status,Channel {
   ...-
   ...open bad room list : open_bad_chan
   ..-
-  ..$style_allow_non_default set non-defaults to allow : set_allow_room_non_default $chan $varname_global(allow_room_non_default,$network $+ $chan).value
+  ..$style_allow_non_default set non-defaults to allow : set_allow_room_non_default
   ..$style_allow_default [set defaults to allow] : set_allow_room_default
   ; menu
   .[ir&c oper scan]
@@ -328,7 +291,7 @@ menu Status,Channel {
   ..$iif(($chan == $null),$style_proxy) scan here : /operscan $chan
   ..$style_proxy scan everywhere : /operscan
   ..-
-  ..s&can on join
+  ..$iif($menu_enable_oper_scan != $style(3),$style(1)) s&can on join
   ...$menu_enable_oper_scan switch OFF scanning : disable_oper_scan
   ...-  
   ...$oper_scan_net switch ON for this network : toggle_oper_scan_net
@@ -346,7 +309,9 @@ menu Status,Channel {
   }
   ..-
   ..in&fo : /script_info -chan_link
-  .$style_annc_urls describe urls : annc_urls_toggle
+  .$style_annc_urls describe urls
+  ..$style_annc_urls switch ON .url crawl : annc_urls_toggle
+  ..$style_annc_urls_secure only use secure connections : annc_urls_toggle_secure
   ..-
   ..info : script_info -urls
   .-
@@ -354,7 +319,8 @@ menu Status,Channel {
   .$style_auto_ial [&auto update ial] : toggle_auto_ial
 
   &trio-ircproxy.py
-  .&visit your home-page : bnc_msg visit homepage
+  .&visit your home-page : proxy_msg visit homepage
+  .&visit proxy list : run https://www.mslscript.com/proxy.html
   .-
 
   ; Keep track of the IP and PORT in use so you know where to send the shutdown command to
@@ -393,13 +359,25 @@ alias -l style_annc_urls {
 alias -l annc_urls_toggle {
   set $varname_cid(annc_urls,blank) $iif(($varname_cid(annc_urls,blank).value),$false,$true)
 }
-
+alias query_menu {
+  if ($1 isin beginend) { return }
+  if ($query($1)) { return $query($1) : whois $query($1) }
+}
+alias ialupdate_menu {
+  if ($1 isin beginend) { return }
+  if (!$chan($1)) { return }
+  if ($chan($1).status != joined) { return $style(2) $chan($1) - $chan($1).status : return }
+  if ($chan($1)) { return $chan($1) $ialupdated($chan($1)) : if ($ial) { ialfill -f $chan($1) } }
+}
 alias play-sound-history {
   if ($1 isin begin end) { return asdf }
   if ($1 == 16) { return }
   var %fn = $varname_global(sound-history,$1).value
   if (!%fn) { return }
   return $nopath(%fn) : play-sound $eval($iif($active == $chan || $active == $nick,$ifmatch,$gettok($$?="enter a room or nickname to play to:",1,32)),0) %fn
+}
+alias style_annc_urls_secure {
+  if ($varname_global(urlcrawl,secure) == $null) || ($varname_global(urlcrawl,secure) == $true) { return $style(1) }
 }
 alias play-sound {
   var %file = $qw($2-), %fn
@@ -433,26 +411,31 @@ alias -l oper_scan_client {
   if ($varname_global(oper-scan-client,blank).value == $true) { return $style(1) }
 }
 alias -l toggle_oper_scan_client {
-  set $varname_global(oper-scan-client,blank) $iif($1 isin $!true$false,$1,$iif($varname_global(oper-scan-client,blank).value == $true,$false,$true))
+  set $varname_global(oper-scan-client,blank) $iif(($1 isin $!true$false),$1,$iif(($varname_global(oper-scan-client,blank).value == $true),$false,$true))
 }
 alias -l open_allowed_url {
-  var %fn = $qw($scriptdir..\website_and_proxy\settings\allowed-url-list.txt)
+  var %fn = $qw($scriptdirprevention\allowed-url-list.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 
 }
 alias -l open_bad_word {
-  var %fn = $qw($scriptdir..\website_and_proxy\settings\bad-word-list.txt)
+  var %fn = $qw($scriptdirprevention\bad-word-list.txt)
+  if ($exists(%fn) == $false) { write -c %fn }
+  run %fn
+}
+alias -l open_bad_script {
+  var %fn = $qw($scriptdirprevention\bad-scripts.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
 alias -l open_bad_chan {
-  var %fn = $qw($scriptdir..\website_and_proxy\settings\bad-chan-list.txt)
+  var %fn = $qw($scriptdirprevention\bad-chan-list.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
 alias -l open_allowed_room {
-  var %fn = $qw($scriptdir..\website_and_proxy\settings\allowed-room-names.txt)
+  var %fn = $qw($scriptdirprevention\allowed-room-names.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
@@ -462,55 +445,40 @@ alias -l style_bad_chan_off {
 }
 alias -l style_bad_chan {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_chan,$network $+ $chan).value == $true) || ($varname_global(allow_bad_chan,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_bad_chan,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_default {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_default,$network $+ $chan).value == $true) || ($varname_global(allow_room_default,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_default,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_repeat {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_repeat,$network $+ $chan).value == $true) || ($varname_global(allow_room_repeat,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_repeat,$network $+ $chan).value == $null) { return $style(1) }
 }
-alias -l style_bad_script_ban {
+alias style_bad_script_menu {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_script_ban,$network $+ $chan).value == $null) && ($varname_global(bad_script_warn,$network $+ $chan).value == $null) && ($varname_global(allow_bad_script,$network $+ $chan).value == $null) { 
-    set $varname_global(allow_bad_script_ban,$network $+ $chan) $true
-    return $style(3)
-  }
-  if ($varname_global(allow_bad_script_ban,$network $+ $chan).value == $true) || ($varname_global(allow_bad_script_ban,$network $+ $chan).value == $null) { return $style(3) }
+  if ($varname_global(allow_bad_scripts_menu,$network  $+ $chan).value == $null) { return $style(1) }
 }
-alias -l style_bad_script_warn {
+alias style_bad_script_ban {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_script_ban,$network $+ $chan).value == $null) && ($varname_global(bad_script_warn,$network $+ $chan).value == $null) && ($varname_global(allow_bad_script,$network $+ $chan).value == $null) { return }
-  if ($varname_global(bad_script_warn,$network $+ $chan).value == $true) || ($varname_global(bad_script_warn,$network $+ $chan).value == $null) { return $style(3) }
-}
-alias -l style_bad_script_menu {
-  if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_script_ban,$network $+ $chan).value == $null) && ($varname_global(bad_script_warn,$network $+ $chan).value == $null) && ($varname_global(allow_bad_script,$network $+ $chan).value == $null) { return }
-  if (($varname_global(allow_bad_script,$network $+ $chan).value == $true) || ($varname_global(allow_bad_script,$network $+ $chan).value == $null)) || ($varname_global(bad_script_warn,$network $+ $chan).value == $true) { return $style(1) }
-}
-alias -l style_bad_script {
-  if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_script_ban,$network $+ $chan).value == $null) && ($varname_global(bad_script_warn,$network $+ $chan).value == $null) && ($varname_global(allow_bad_script,$network $+ $chan).value == $null) { return }
-  if (($varname_global(allow_bad_script,$network $+ $chan).value == $true) || ($varname_global(allow_bad_script,$network $+ $chan).value == $null)) { return $style(3) }
+  if ($varname_global(allow_bad_scripts,$network  $+ $chan).value == $false) { return $style(1) }
 }
 
 alias -l style_bad_chan {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_chan,$network $+ $chan).value == $true) || ($varname_global(allow_bad_chan,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_bad_chan,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_url {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_url,$network $+ $chan).value == $true) || ($varname_global(allow_room_url,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_url,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_url_off {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_url,$network $+ $chan).value == $false) { return $style(1) }
+  if ($varname_global(allow_room_url,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_room_name {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_name,$network $+ $chan).value == $true) || ($varname_global(allow_room_name,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_name,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_room_name_off {
   if (!$network) || (!$chan) { return $style(2) }
@@ -519,11 +487,11 @@ alias -l style_allow_room_name_off {
 
 alias -l style_allow_binart {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_binart,$network $+ $chan).value == $true) || ($varname_global(allow_room_binart,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_binart,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_bad_word {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_bad_word,$network $+ $chan).value == $null) || ($varname_global(allow_bad_word,$network $+ $chan).value == $true) { return $style(1) }
+  if ($varname_global(allow_bad_word,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_bad_word_off {
   if (!$network) || (!$chan) { return }
@@ -532,241 +500,202 @@ alias -l style_allow_bad_word_off {
 }
 alias -l style_allow_idle {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_idle,$network $+ $chan).value == $true) || ($varname_global(allow_room_idle,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_idle,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_share {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_sharing,$network $+ $chan).value == $true) || ($varname_global(allow_room_sharing,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_sharing,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_clone {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_clone,$network $+ $chan).value == $true) || ($varname_global(allow_room_clone,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_clone,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_rand_nick {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_rand_nick,$network $+ $chan).value == $true) || ($varname_global(allow_rand_nick,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_rand_nick,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_long_word {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_long_word,$network $+ $chan).value == $true) || ($varname_global(allow_long_word,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_long_word,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_line {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_long_line,$network $+ $chan).value == $true) || ($varname_global(allow_long_line,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_long_line,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_paste {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_paste,$network $+ $chan).value == $true) || ($varname_global(allow_room_paste,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_paste,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_non_default {
   if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(allow_room_non_default,$network $+ $chan).value == $true) || ($varname_global(allow_room_non_default,$network $+ $chan).value == $null) { return $style(1) }
+  if ($varname_global(allow_room_non_default,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_rand_text {
   if (!$network) || (!$chan) { return $style(2) }
-  if (($varname_global(allow_rand_text,$network $+ $chan).value == $true) || ($varname_global(allow_rand_text,$network $+ $chan).value == $null)) { return $style(1) }
+  if ($varname_global(allow_rand_text,$network $+ $chan).value == $null) { return $style(1) }
 }
 alias -l style_allow_ascii {
   if (!$network) || (!$chan) { return $style(2) }
-  if (($varname_global(allow_rand_text,$network $+ $chan).value == $true) || ($varname_global(allow_rand_text,$network $+ $chan).value == $null)) && (($varname_global(allow_room_paste,$network $+ $chan).value == $true) || ($varname_global(allow_room_paste,$network $+ $chan).value == $null)) && (($varname_global(allow_long_line,$network $+ $chan).value == $true) || ($varname_global(allow_long_line,$network $+ $chan).value == $null)) && $&
-    (($varname_global(allow_long_word,$network $+ $chan).value == $true) || ($varname_global(allow_long_word,$network $+ $chan).value == $null)) && (($varname_global(allow_room_repeat,$network $+ $chan).value == $true) || ($varname_global(allow_room_repeat,$network $+ $chan).value == $null)) { return $style(1) }
+  if ($varname_global(allow_rand_text,$network $+ $chan).value == $null) && $&
+    ($varname_global(allow_room_paste,$network $+ $chan).value == $null) || $&
+    ($varname_global(allow_long_line,$network $+ $chan).value == $null) && $&
+    ($varname_global(allow_long_word,$network $+ $chan).value == $null) && $&
+    ($varname_global(allow_room_repeat,$network $+ $chan).value == $null) { return $style(1) }
 }
 
-alias -l get_bool {
-  if (!$network) || ($left($1,1) != $chr(35)) || (!$2) { halt }
-  var %bool
-  if ($3 == $null) {
-    if ($varname_global($2,$network $+ $1).value == $null) { 
-      var %bool = $false
-      set $varname_global($2,$network $+ $1) $false
-    }
-    elseif ($varname_global($2,$network $+ $1).value != $true) { var %bool = $true }
-    else { var %bool = $false }
-  }
-  else {
-    if ($2 == on) || ($2 == yes) || ($2 == true) || ($2 == $true) { var %bool = $false }
-    elseif ($2 == off) || ($2 == no) || ($2 == false) || ($2 == $false) { var %bool = $true }
-    elseif {%bool == $null) { var %bool = $true }
-    else { var %bool = $false }
-  }
-  if ($3 != $null) { set $varname_global($3,$network $+ $1) %bool }
-  elseif ($2 != $null) { set $varname_global($2,$network $+ $1) %bool }
-}
+
 alias set_allow_room_binart {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_binart
-  get_bool $1-
-  if ($varname_global(allow_room_binart,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_room_binart,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_room_binart,$network $+ $chan).value == $null) { set $varname_global(allow_room_binart,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_binart,$network $+ $chan) }
 
 }
 alias set_allow_rand_nick {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_rand_nick
-  get_bool $1-
-  if ($varname_global(allow_rand_nick,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
+  if ($varname_global(allow_rand_nick,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_rand_nick,$network $+ $chan).value == $null) { set $varname_global(allow_rand_nick,$network $+ $chan) $false }
+  else { unset $varname_global(allow_rand_nick,$network $+ $chan) }
+
+
 }
 
 alias set_allow_room_clone {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_clone
-  get_bool $1-
-  if ($varname_global(allow_room_clone,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
+  if ($varname_global(allow_room_clone,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_room_clone,$network $+ $chan).value == $null) { set $varname_global(allow_room_clone,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_clone,$network $+ $chan) }
 }
-alias set_allow_room_bad_script_ban {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_bad_script_ban
-  get_bool $1-
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(bad_script_warn,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script,$network $+ $1).value == $true) { set $varname_global(bad_script_warn,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(bad_script_warn,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
-}
-alias set_allow_bad_script_warn {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) bad_script_warn
-  get_bool $1-
-  if ($varname_global(bad_script_warn,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(bad_script_warn,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script,$network $+ $1).value == $true) { set $varname_global(bad_script_warn,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(bad_script_warn,$network $+ $1).value == $true) { set $varname_global(allow_room_default,$network $+ $1) $false }
-
-}
-alias set_allow_bad_script {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_bad_script
-  get_bool $1-
-  if ($varname_global(allow_bad_script,$network $+ $1).value == $true) { set $varname_global(bad_script_warn,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(bad_script_warn,$network $+ $1) $false }
-  if ($varname_global(bad_script_warn,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script,$network $+ $1).value == $true) { set $varname_global(allow_room_default,$network $+ $1) $false }
-
+alias set_do_not_allow_bad_scripts {
+  if ($varname_global(allow_bad_scripts,$network $+ $chan).value == $null) { unset $varname_global(allow_room_non_default,$network $+ $chan }
+  if ($varname_global(allow_bad_scripts,$network $+ $chan).value == $null) { unset $varname_global(allow_bad_scripts_menu,$network $+ $chan) | set $varname_global(allow_bad_scripts,$network $+ $chan) $false }
+  else { unset $varname_global(allow_bad_scripts,$network $+ $chan) }
 }
 
 alias set_allow_room_badword {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_bad_word
-  get_bool $1-
-  if ($varname_global(allow_bad_word,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_bad_word,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_bad_word,$network $+ $chan).value == $null) { set $varname_global(allow_bad_word,$network $+ $chan) $false }
+  else { unset $varname_global(allow_bad_word,$network $+ $chan) }
 }
 alias set_allow_room_non_default {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_non_default
-  if ($varname_global(allow_room_non_default,$network $+ $1).value == $true) || ($varname_global(allow_room_non_default,$network $+ $1).value == $null) { 
-    set_allow_asciiart_non_default $1 $false
-    set $varname_global(allow_bad_script_ban,$network $+ $1) $true
-    set $varname_global(allow_bad_script,$network $+ $1) $false
-    set $varname_global(allow_rand_nick,$network $+ $1) $false
-    set $varname_global(allow_room_clone,$network $+ $1) $false
-    set $varname_global(allow_room_non_default,$network $+ $1) $false
+  if ($varname_global(allow_room_non_default,$network $+ $chan).value == $null) {
+    set $varname_global(allow_room_non_default,$network $+ $chan) $false
+    set_allow_asciiart_non_default
+    set $varname_global(allow_bad_scripts,$network $+ $chan) $false
+    set $varname_global(allow_bad_scripts_menu,$network  $+ $chan) $false
+    set $varname_global(allow_rand_nick,$network $+ $chan) $false
+    set $varname_global(allow_room_clone,$network $+ $chan) $false
+    set_allow_asciiart
   }
   else { 
-    set $varname_global(allow_bad_script_ban,$network $+ $1) $false
-    set $varname_global(allow_bad_script,$network $+ $1) $true
-    set $varname_global(allow_rand_nick,$network $+ $1) $true
-    set $varname_global(allow_room_clone,$network $+ $1) $true
-    set_allow_asciiart_non_default $1 $true | set $varname_global(allow_room_non_default,$network $+ $1) $true 
+    unset $varname_global(allow_room_non_default,$network $+ $chan)
+    unset_allow_asciiart_non_default
+    unset $varname_global(allow_bad_scripts,$network $+ $chan)
+    unset $varname_global(allow_bad_scripts_menu,$network  $+ $chan)
+    unset $varname_global(allow_rand_nick,$network $+ $chan)
+    unset $varname_global(allow_room_clone,$network $+ $chan)
+    set_allow_asciiart
   }
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $true) || ($varname_global(allow_bad_script_ban,$network $+ $1).value == $null) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(bad_script_warn,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $true }
-  if ($varname_global(bad_script_warn,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(allow_bad_script_ban,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $true) { set $varname_global(allow_bad_script,$network $+ $1) $false | set $varname_global(bad_script_warn,$network $+ $1) $false }
-  if ($varname_global(allow_bad_script_ban,$network $+ $1).value == $trueentire to) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
 }
 alias set_allow_room_default {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_default
-  get_bool $1-
-  set $varname_global(allow_room_sharing,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_room_idle,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_bad_word,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_room_binart,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_room_name,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_room_url,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_bad_chan,$network $+ $1) $varname_global(allow_room_default,$network $+ $1).value
-  set $varname_global(allow_rand_text,$network $+ $1) $true
+  if ($varname_global(allow_room_default,$network $+ $chan).value == $null) {
+    set $varname_global(allow_room_default,$network $+ $chan) $false
+  }
+  else { unset $varname_global(allow_room_default,$network $+ $chan) }
+  set $varname_global(allow_room_sharing,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  set $varname_global(allow_room_idle,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  set $varname_global(allow_bad_word,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  set $varname_global(allow_room_binart,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  set $varname_global(allow_room_name,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  set $varname_global(allow_room_url,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  set $varname_global(allow_bad_chan,$network $+ $chan) $varname_global(allow_room_default,$network $+ $chan).value
+  unset $varname_global(allow_rand_text,$network $+ $chan)
 }
 alias set_allow_room_bad_chan {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_bad_chan
-  get_bool $1-
-  if ($varname_global(allow_bad_chan,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
-}
-alias set_allow_room_repeat {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_repeat
-  get_bool $1-
-  if ($varname_global(allow_room_repeat,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
-}
-alias set_allow_room_paste {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_paste
-  get_bool $1-
-  if ($varname_global(allow_room_paste,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
-}
-alias set_allow_room_long_word {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_long_word
-  get_bool $1-
-  if ($varname_global(allow_long_word,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
-}
-alias set_allow_room_long_line {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_long_line
-  get_bool $1-
-  if ($varname_global(allow_long_line,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
-}
-alias set_allow_room_random_text {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_rand_text
-  get_bool $1-
-  if ($varname_global(allow_rand_text,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_bad_chan,$network $+ $chan).value == $false) { set $varname_global(allow_room_default,$network $+ $chan) $false }
+  if ($varname_global(allow_bad_chan,$network $+ $chan).value == $null) { set $varname_global(allow_bad_chan,$network $+ $chan) $false }
+  else { unset $varname_global(allow_bad_chan,$network $+ $chan) }
 
 }
+alias set_allow_room_repeat {
+  if ($varname_global(allow_room_repeat,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_room_repeat,$network $+ $chan).value == $null) { set $varname_global(allow_room_repeat,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_repeat,$network $+ $chan) }
+
+}
+alias set_allow_room_paste {
+  if ($varname_global(allow_room_paste,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_room_paste,$network $+ $chan).value == $null) { set $varname_global(allow_room_paste,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_paste,$network $+ $chan) }
+
+}
+alias set_allow_room_long_word {
+  if ($varname_global(allow_long_word,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_long_word,$network $+ $chan).value == $null) { set $varname_global(allow_long_word,$network $+ $chan) $false }
+  else { unset $varname_global(allow_long_word,$network $+ $chan) }
+
+}
+alias set_allow_room_long_line {
+  if ($varname_global(allow_long_line,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_long_line,$network $+ $chan).value == $null) { set $varname_global(allow_long_line,$network $+ $chan) $false }
+  else { unset $varname_global(allow_long_line,$network $+ $chan) }
+
+}
+alias set_allow_room_random_text {
+  if ($varname_global(allow_rand_text,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_rand_text,$network $+ $chan).value == $null) { set $varname_global(allow_rand_text,$network $+ $chan) $false }
+  else { unset $varname_global(allow_rand_text,$network $+ $chan) }
+}
 alias set_allow_asciiart {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_asciiart
-  get_bool $1-
-  set $varname_global(allow_rand_text,$network $+ $1) $true
-  set $varname_global(allow_room_paste,$network $+ $1) $varname_global(allow_asciiart,$network $+ $1).value
-  set $varname_global(allow_long_line,$network $+ $1) $varname_global(allow_asciiart,$network $+ $1).value
-  set $varname_global(allow_long_word,$network $+ $1) $varname_global(allow_asciiart,$network $+ $1).value
-  set $varname_global(allow_room_repeat,$network $+ $1) $varname_global(allow_asciiart,$network $+ $1).value
-  if ($varname_global(allow_asciiart,$network $+ $1).value == $false) { set $varname_global(allow_room_non_default,$network $+ $1) $false }
+  unset $varname_global(allow_rand_text,$network $+ $chan)
+  set $varname_global(allow_room_paste,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_long_line,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_long_word,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_room_repeat,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  if ($varname_global(allow_asciiart,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_asciiart,$network $+ $chan).value == $null) { set $varname_global(allow_asciiart,$network $+ $chan) $false }
+  else { unset $varname_global(allow_asciiart,$network $+ $chan) }
 }
 
 alias set_allow_asciiart_non_default {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_asciiart
-  if ($2 == $null) { return }
-  set $varname_global(allow_asciiart,$network $+ $1) $2
-  set $varname_global(allow_rand_text,$network $+ $1) $true
-  set $varname_global(allow_room_paste,$network $+ $1) $2
-  set $varname_global(allow_long_line,$network $+ $1) $2
-  set $varname_global(allow_long_word,$network $+ $1) $2
-  set $varname_global(allow_room_repeat,$network $+ $1) $2
-  set $varname_global(allow_room_non_default,$network $+ $1) $2
+  set $varname_global(allow_asciiart,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  unset $varname_global(allow_rand_text,$network $+ $chan)
+  set $varname_global(allow_room_paste,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_long_line,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_long_word,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_room_repeat,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_room_non_default,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
 }
 alias SET_ALLOW_ROOM_FILE_SHARE {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_sharing
-  get_bool $1-
-  if ($varname_global(allow_room_sharing,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_room_sharing,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_room_sharing,$network $+ $chan).value == $null) { set $varname_global(allow_room_sharing,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_sharing,$network $+ $chan) }
+
 }
 alias set_allow_room_idle {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_idle
-  get_bool $1-
-  if ($varname_global(allow_room_idle,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_room_idle,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_room_idle,$network $+ $chan).value == $null) { set $varname_global(allow_room_idle,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_idle,$network $+ $chan) }
+
+
 }
 alias set_allow_room_url {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_url
-  get_bool $1-
-  if ($varname_global(allow_room_url,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_room_url,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_room_url,$network $+ $chan).value == $null) { set $varname_global(allow_room_url,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_url,$network $+ $chan) }
 
 }
 alias set_allow_room_name {
-  tokenize 32 $iif(($left($1,1) == $chr(35)),$1 $2,$chan $1) allow_room_name
-  get_bool $1-
-  if ($varname_global(allow_room_name,$network $+ $1).value == $false) { set $varname_global(allow_room_default,$network $+ $1) $false }
+  if ($varname_global(allow_room_name,$network $+ $chan).value == $false) { unset $varname_global(allow_room_default,$network $+ $chan) }
+  if ($varname_global(allow_room_name,$network $+ $chan).value == $null) { set $varname_global(allow_room_name,$network $+ $chan) $false }
+  else { unset $varname_global(allow_room_name,$network $+ $chan) }
 
 }
-alias -l set-service-port {
-  %pp = $remove($1-,[,])
-  %pp = $remove(%pp,$chr(32))
-
-  if (!$isnum(%p)) || (%p < 1) || (%p > 65535) { errecho invalid port number, port must be from 1 to 65535. | eecho port numbers between 1122 and 5000 are recommended. | return }
-  set $varname_glob(use-port,proxy) %pp
-  /writeini $scriptdir\..\www\www-server-config.ini %topic proxy-port %pp
-  eecho restart Trio-IrcProxy.py for changes to take affect. Also, change your mIRC proxy settings.
-}
-
-alias menu_enable_oper_scan {
+alias -l menu_enable_oper_scan {
   if ($varname_cid(oper-scan-cid).value) { return }
   if ($chan && $varname_cid(oper-scan-cid-chan,$chan).value) { return }
   if ($network && ($varname_global(oper-scan-net,$network).value)) { return }
   if ($network && $chan && ($varname_global(oper-scan-net-chan,$+($$network,$$Chan)).value)) { return }
   if ($varname_global(oper-scan-client,blank).value) { return }
-  return $style(1)
+  return $style(3)
 }
 
 alias disable_oper_scan {

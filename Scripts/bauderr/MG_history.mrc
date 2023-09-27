@@ -3,6 +3,73 @@ on *:exit:exp_topics
 on *:load:exp_topics
 on *:connect:exp_topics
 
+menu channel,status {
+  &room functions
+  .$iif(($active == Status Window),$style(2)) topi&c history
+  ..$topic_history_pops(1)
+  ...echo topic : echo -ae $topic_history_pops(1).topic
+  ...remove this topic : topic_history_remove 1
+  ...-
+  ...set this topic : /editbox /topic $chan $topic_history_pops(1).topic
+  ..$topic_history_pops(2)
+  ...echo topic : echo -ae $topic_history_pops(2).topic
+  ...remove this topic : topic_history_remove 2
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(2).topic
+  ..$topic_history_pops(3)
+  ...echo topic : echo -ae $topic_history_pops(3).topic
+  ...remove this topic : topic_history_remove 3
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(3).topic
+  ..$topic_history_pops(4)
+  ...echo topic : echo -ae $topic_history_pops(4).topic
+  ...remove this topic : topic_history_remove 4
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(4).topic
+  ..$topic_history_pops(5)
+  ...echo topic : echo -ae $topic_history_pops(5).topic
+  ...remove this topic : topic_history_remove 5
+  ...-
+  ...set this topic : topic $chan $topic_history_pops(5).topic
+  ..$topic_history_pops(6)
+  ...echo topic : echo -ae $topic_history_pops(6).topic
+  ...remove this topic : topic_history_remove 6
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(6).topic
+  ..$topic_history_pops(7)
+  ...echo topic : echo -ae $topic_history_pops(7).topic
+  ...remove this topic : topic_history_remove 7
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(7).topic
+  ..$topic_history_pops(8)
+  ...echo topic : echo -ae $topic_history_pops(8).topic
+  ...remove this topic : topic_history_remove 8
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(8).topic
+  ..$topic_history_pops(9)
+  ...echo topic : echo -ae $topic_history_pops(9).topic
+  ...remove this topic : topic_history_remove 9
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(9).topic
+  ..$topic_history_pops(10)
+  ...echo topic : echo -ae $topic_history_pops(10).topic
+  ...remove this topic : topic_history_remove 10
+  ...-
+  ...set this topic : editbox /topic $chan $topic_history_pops(10).topic
+  ..-
+  ..$iif(($eval($var($varname_global(topic_history_ $+ $chan,*),1),1) == $null || (!$chan)),$style(3)) erase topic history for room : unset $varname_global(topic_history_ $+ $chan,*) | eecho -sep topic history cleared for room $chan
+  ..$iif(($var($varname_global(topic_history_*,*),0) == 0),$style(3)) erase entire topic history : unset $varname_global(topic_history_*,*) | eecho -sep topic history for ALL channels is cleared
+  ..-
+  ..$style_topic_history_on switch ON topic history : topic_history_switch_on
+}
+alias -l style_topic_history_on {
+  if ($varname_global(topic_history_switch,on).value) { return $style(1) }
+}
+alias -l topic_history_switch_on {
+  if ($varname_global(topic_history_switch,on).value) { set $varname_global(topic_history_switch,on) $false | eecho topic history switched [OFF] }
+  else { set $varname_global(topic_history_switch,on) $true | eecho topic history switched [ON] }
+
+}
 alias exp_topics {
   var %check = $varname_global(topic_history_*,*)
   var %i = 0
@@ -20,8 +87,7 @@ raw 332:*: {
   topic_history_add $2 $3-
 }
 alias topic_history_remove {
-  if (!$1) { return }
-  unset $varname_global(topic_history_ $+ $1,*)
+  unset $var($varname_global(topic_history_ $+ $$chan,*),$$1)
 }
 alias topic_history_add {
   exp_topics
@@ -48,13 +114,15 @@ alias -l remove_oldest_topic {
   var %chan = #$$1
   var %i = 0
   var %oldctime = 0
+  var %newtime = 0
   :loop
   inc %i
-  var %newctime = $gettok($var($varname_global(topic_history_ $+ %chan,*),%i),-1,35)
-  if (%newctime == $null) { return }
-  if (%newctime > %oldctime) { %oldctime = %newctime }
+  %newctime = $gettok($var($varname_global(topic_history_ $+ %chan,*),%i),-1,35)
+  if (%newctime == $null) { goto end }
+  if (%newctime >= %oldctime) { %oldctime = %newctime }
   goto loop
-  if (%newctime) && (%oldctime) { echo unset $var($varname_global(topic_history_ $+ %chan,*),%i) | unset $var($varname_global(topic_history_ $+ %chan,*),%i)  }
+  :end
+  if (%oldctime) { unset $varname_global(topic_history_ $+ %chan,%oldctime)  }
 }
 alias topic_history_pops {
   if ($var($varname_global(topic_history_ $+ $active,*),$1) == $null) { return $null }
@@ -62,24 +130,5 @@ alias topic_history_pops {
   if ($prop == topic) { return %pop }
   var %pop = $strip(%pop)
   if ($len(%pop) > 60) { return $left(%pop, 58) $+ ... }
-  else { return $%pop }
-}
-alias topic_history_popup {
-  if ($1 == begin) { return }
-  if ($1 == end) { return }
-  if ($1 > 16) { halt }
-  var %chan = $chan
-  if (!%chan) && ($1 == 1) { return $style(2) - not a channel - : return }
-  if (!%chan) || (!$1) { return }
-  if ($1 == 16) {
-    unset $var($varname_global(topic_history_ $+ %chan,*),1)
-  }
-  var %check = $varname_global(topic_history_ $+ %chan,*)
-  ; eval is set to 1 because it gets evaluated when displayed
-  var %topic = $var($eval(%check,1),$1)
-  if (%topic == $null) { return }
-  var %top-pop = $strip($eval(%topic,2))
-  if ($len(%top-pop) > 60) { %top-pop = $left(%top-pop, 58) ... }
-  %top-pop = $replace(%top-pop,$,$)
-  return $replace(%top-pop,:,!) : /editbox /topic %chan $eval(%topic,1)
+  else { return %pop }
 }

@@ -11,6 +11,8 @@ alias bde_start {
   .speak -lu Greetings
   unset %bde_cid_*
   unset %bde_net_*
+}
+on *:connect: {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
 }
 

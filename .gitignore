@@ -5,7 +5,8 @@
 *.key
 *.crt
 *\users\*
-
+*/users/*
+servers.ini
 *venv*
 #backups
 *.bak
