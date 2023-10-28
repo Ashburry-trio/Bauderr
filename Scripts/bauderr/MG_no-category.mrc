@@ -57,11 +57,11 @@ alias eecho {
   var %msg
   if ($1 == -sep) { %msg = $2- | linesep -s }
   else { %msg = $1- }
-  echo -s 54,93Bauderr : %msg
+  echo -s 65,92Bauderr : %msg
   if ($active == Status Window) { return }
   if (@* iswm $active) { return }
   linesep -a
-  echo -a 54,93Bauderr : %msg
+  echo -a 65,92Bauderr : %msg
 }
 alias strip-space-regx { 
   ; set to a variable to strip $crlf

@@ -5,6 +5,16 @@ alias menu_parted {
   if (!$chan($1)) { return - }
   return $chan($1) $block($chan($1).status) : part $chan($1)
 }
+alias style_part_all_rooms {
+  var %i = 1
+  var %chan = $chan(%i)
+  while (%chan) {
+    if (join isin $chan(%i).status) { return }
+    inc %i
+    %chan = $chan(%i)
+  }
+  return $style(3)
+}
 alias close_parted {
   var %i = 1
   var %last
@@ -210,11 +220,6 @@ alias dq {
 
 menu Status,Channel {
   $chr(46) $chr(58) M&achine Gun $str($chr(58),2) $chr(58)
-  .encrypt passwords
-  ..set main password
-  ..remove main password
-  ..-
-  ..show passords
   .$style_proxy $chr(46) $chr(58) describe mg $str($chr(58),2) $chr(58)
   ..$advertise-chan : /describe $chan is using Machine Gun mSL script named Bauderr. use ctcp version/script/source for more info.
   ..$advertise-in-channel
@@ -239,8 +244,6 @@ menu Status,Channel {
   ..$identify_here_popup : /msg *status identify $$chan 
   ..$popup-identify-founder-list
   ...$submenu($identify_chans_popup($1))
-
-  .-
   .[&allow prevention]
   ..$style_allow_ascii &allow ascii-art
   ...$style_allow_paste &allow paste 25 lines : set_allow_room_paste
@@ -551,7 +554,7 @@ alias set_allow_room_binart {
 
 }
 alias set_allow_rand_nick {
-  if ($varname_global(allow_rand_nick,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_rand_nick,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   if ($varname_global(allow_rand_nick,$network $+ $chan).value == $null) { set $varname_global(allow_rand_nick,$network $+ $chan) $false }
   else { unset $varname_global(allow_rand_nick,$network $+ $chan) }
 
@@ -559,7 +562,7 @@ alias set_allow_rand_nick {
 }
 
 alias set_allow_room_clone {
-  if ($varname_global(allow_room_clone,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_room_clone,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   if ($varname_global(allow_room_clone,$network $+ $chan).value == $null) { set $varname_global(allow_room_clone,$network $+ $chan) $false }
   else { unset $varname_global(allow_room_clone,$network $+ $chan) }
 }
@@ -615,25 +618,25 @@ alias set_allow_room_bad_chan {
 
 }
 alias set_allow_room_repeat {
-  if ($varname_global(allow_room_repeat,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_room_repeat,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   if ($varname_global(allow_room_repeat,$network $+ $chan).value == $null) { set $varname_global(allow_room_repeat,$network $+ $chan) $false }
   else { unset $varname_global(allow_room_repeat,$network $+ $chan) }
 
 }
 alias set_allow_room_paste {
-  if ($varname_global(allow_room_paste,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_room_paste,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   if ($varname_global(allow_room_paste,$network $+ $chan).value == $null) { set $varname_global(allow_room_paste,$network $+ $chan) $false }
   else { unset $varname_global(allow_room_paste,$network $+ $chan) }
 
 }
 alias set_allow_room_long_word {
-  if ($varname_global(allow_long_word,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_long_word,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   if ($varname_global(allow_long_word,$network $+ $chan).value == $null) { set $varname_global(allow_long_word,$network $+ $chan) $false }
   else { unset $varname_global(allow_long_word,$network $+ $chan) }
 
 }
 alias set_allow_room_long_line {
-  if ($varname_global(allow_long_line,$network $+ $chan).value == $false) { unset $varname_global(allow_room_non_default,$network $+ $chan) }
+  if ($varname_global(allow_long_line,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   if ($varname_global(allow_long_line,$network $+ $chan).value == $null) { set $varname_global(allow_long_line,$network $+ $chan) $false }
   else { unset $varname_global(allow_long_line,$network $+ $chan) }
 
@@ -645,18 +648,18 @@ alias set_allow_room_random_text {
 }
 alias set_allow_asciiart {
   unset $varname_global(allow_rand_text,$network $+ $chan)
+  set $varname_global(allow_asciiart,$network $+ $chan) $iif(($varname_global(allow_asciiart,$network $+ $chan).value == $null), $false, $null)
   set $varname_global(allow_room_paste,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
   set $varname_global(allow_long_line,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
   set $varname_global(allow_long_word,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
   set $varname_global(allow_room_repeat,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
   if ($varname_global(allow_asciiart,$network $+ $chan).value == $false) { set $varname_global(allow_room_non_default,$network $+ $chan) $false }
   else { unset $varname_global(allow_room_non_default,$network $+ $chan) }
-  if ($varname_global(allow_asciiart,$network $+ $chan).value == $null) { set $varname_global(allow_asciiart,$network $+ $chan) $false }
-  else { unset $varname_global(allow_asciiart,$network $+ $chan) }
+
 }
 
 alias set_allow_asciiart_non_default {
-  set $varname_global(allow_asciiart,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
+  set $varname_global(allow_asciiart,$network $+ $chan) $iif(($varname_global(allow_asciiart,$network $+ $chan).value == $null),$false,$null)
   unset $varname_global(allow_rand_text,$network $+ $chan)
   set $varname_global(allow_room_paste,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
   set $varname_global(allow_long_line,$network $+ $chan) $varname_global(allow_asciiart,$network $+ $chan).value
@@ -880,5 +883,5 @@ alias status_msg {
 }
 alias errecho {
   if ($active == Status Window) { echo -a 4Error: $1- }
-  else { echo -s 4Error: $1- }
+  else { echo -as 4Error: $1- }
 }

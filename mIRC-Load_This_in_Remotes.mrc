@@ -22,9 +22,15 @@ alias baud_load_all {
   load -pn $qt($scriptdirScripts\bauderr\MG_popups.ini)
   load -pm $qt($scriptdirScripts\bauderr\MG_popups.ini)
   var %fn = MG_Users-for- $+ %mg_app $+ .mrc
-  /load -ru $qt($scriptdirScripts\bauderr\ $+ %fn)
   var %fn = MG_Vars-for- $+ %mg_app $+ .mrc
-  /load -rv $qt($scriptdirScripts\bauderr\ $+ %fn)
+  if (%mg_app == adiirc) {
+  /load -ru $qt($scriptdirScripts\bauderr\adiirc\ $+ %fn)
+  /load -rv $qt($scriptdirScripts\bauderr\adiirc\ $+ %fn)
+  }
+  else {
+  /load -ru $qt($scriptdirScripts\bauderr\ $+ %fn)
+  /load -rv $qt($scriptdirScripts\bauderr\ $+ %fn)  
+  }
 }
 alias -l mg_set_app {
   if (adiirc isin $mircexe) { set %mg_app Adiirc }
