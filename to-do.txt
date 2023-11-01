@@ -1,4 +1,5 @@
 Add scripts in Python:
+Strip packet numbers of characters other than numbers. (/msg [EWG]-R-EiN-01 XDCC SEND #511\sd)
 Announce URL title to user or to channel.
 prevent password from being sent to network or dcc
 auto-authenticate when changing nick.

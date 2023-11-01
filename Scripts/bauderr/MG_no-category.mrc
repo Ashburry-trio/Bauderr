@@ -3,14 +3,20 @@ on *:start: {
 }
 alias bde_start {
   !.bigfloat off
+  :adiirc
   !.switchbar off
   !.sound on
   !.menubar on
   !.treebar on
+  !.dcc packetsize 65535
+  !.pdcc on
   !.dcc maxcps $calc(1024 * 1024 * 12)
   .speak -lu Greetings
   unset %bde_cid_*
   unset %bde_net_*
+  return
+  :error
+  goto adiirc
 }
 on *:connect: {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
