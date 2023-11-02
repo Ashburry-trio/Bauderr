@@ -66,14 +66,11 @@ on *:start: {
   unset %bde_temp*
 }
 raw 18:*: {
-  if ($1- == :www.mslscript.com www.mslscript.com online) {
-    set $varname_cid(trio-ircproxy,in_use) = $true
-  }
+  if (www.mslscript.com isin $1-) { set $varname_cid(trio-ircproxy.py,active) $true }
 }
 on *:quit: {
   if ($nick == $me) { 
     unset $varname_cid(trio-ircproxy.py, active)
-    unset $varname_cid(trio-ircproxy.py, admin)     
   }
 }
 alias onotice-script {
@@ -129,6 +126,7 @@ alias style_show_away_priv {
 }
 
 alias style_show_away {
+  if ($bool_using_proxy != $true) { return $style(2) }
   return $iif($style_show_away_priv $+ $style_show_away_note,$style(1))
 }
 alias set_show_away {
@@ -201,7 +199,7 @@ alias block {
   if (strip($1) == $null) { return }
   return $chr(91) $+ $1- $+ $chr(93)
 }
-alias -l style_net_chan_link {
+alias style_net_chan_link {
   if (!$chan) { return }
   if ($varname_global(network-link,$chan).value) { return $style(1) }
 }
@@ -219,107 +217,7 @@ alias dq {
 }
 
 menu Status,Channel {
-  $chr(46) $chr(58) M&achine Gun $str($chr(58),2) $chr(58)
-  .$style_proxy $chr(46) $chr(58) describe mg $str($chr(58),2) $chr(58)
-  ..$advertise-chan : /describe $chan is using Machine Gun mSL script named Bauderr. use ctcp version/script/source for more info.
-  ..$advertise-in-channel
-  ...$advertise-chan-00 : /bauderr-advertise --chan $chan(1)
-  ...$advertise-chan-01 : /bauderr-advertise --chan $chan(2)
-  ...$advertise-chan-02 : /bauderr-advertise --chan $chan(3)
-  ...$advertise-chan-03 : /bauderr-advertise --chan $chan(4)
-  ...$advertise-chan-04 : /bauderr-advertise --chan $chan(5)
-  ...$advertise-chan-05 : /bauderr-advertise --chan $chan(6)
-  ...$advertise-chan-06 : /bauderr-advertise --chan $chan(7)
-  ...$advertise-chan-07 : /bauderr-advertise --chan $chan(8)
-  ...$advertise-chan-08 : /bauderr-advertise --chan $chan(9)
-  ...$advertise-chan-09 : /bauderr-advertise --chan $chan(10)
-  ..$advertise-this-connection : /bnc_msg advertise-connection
-  ..$advertise-network : bnc_msg --advertise-network-with-bauderr
-  ..$advertise-this-client : /scon -a /ame is using Machine Gun mSL script named Bauderr. use ctcp version/script/source for more info.
-  ..$advertise-user : bnc_msg advertise-username-with-bauderr
-  ..everywhere possible : bnc_msg --advertise-everywhere-with-bauderr
   -
-  &room functions
-  .&chanserv
-  ..$identify_here_popup : /msg *status identify $$chan 
-  ..$popup-identify-founder-list
-  ...$submenu($identify_chans_popup($1))
-  .[&allow prevention]
-  ..$style_allow_ascii &allow ascii-art
-  ...$style_allow_paste &allow paste 25 lines : set_allow_room_paste
-  ...$style_allow_long_word &allow long words : set_allow_room_long_word
-  ...$style_allow_line &allow long lines : set_allow_room_long_line
-  ...$style_allow_repeat &allow repeat 6x : set_allow_room_repeat
-  ...$style_allow_rand_text [&allow random text] : set_allow_room_random_text
-  ...-
-  ...$style_allow_ascii allow ascii-art (Every Thing) : set_allow_asciiart
-  ..$style_bad_script_menu &allow bad scripts
-  ...$style_bad_script_ban &do not allow bad scripts : set_allow_bad_scripts
-  ...-
-  ...open bad script list : open_bad_script
-  ..$style_allow_rand_nick &allow random nickname : set_allow_rand_nick
-  ..$style_allow_clone &allow clone 10x : set_allow_room_clone
-  ..-
-  ..$style_allow_share [&allow file sharing] : set_allow_room_file_share 
-  ..$style_allow_idle [&allow idle 25+ minutes] : set_allow_room_idle 
-  ..$style_allow_binart [&allow bin-art && non-english] : set_allow_room_binart
-  ..$style_allow_bad_word [&allow bad words]
-  ...$style_allow_bad_word_off do not allow bad words : set_allow_room_badword
-  ...-
-  ...open bad word list : open_bad_word
-  ..$style_allow_room_name [&allow advertising other #room-names]
-  ...$style_allow_room_name_on do not allow : set_allow_room_name
-  ...-
-  ...open allowed list : open_allowed_room
-  ..$style_allow_url [&allow speaking $+(https,$chr(58),//URLs,]) 
-  ...$style_allow_url_off do not allow : set_allow_room_url
-  ...-
-  ...open always allowed-url list : open_allowed_url
-  ..$style_bad_chan [&allow bad room]
-  ...$style_bad_chan_off do not allow : set_allow_room_bad_room
-  ...-
-  ...open bad room list : open_bad_chan
-  ..-
-  ..$style_allow_non_default set non-defaults to allow : set_allow_room_non_default
-  ..$style_allow_default [set defaults to allow] : set_allow_room_default
-  .[ir&c oper scan]
-  ..-
-  ..$iif(($chan == $null),$style_proxy) scan here : /operscan $chan
-  ..$style_proxy scan everywhere : /operscan
-  ..-
-  ..$iif($menu_enable_oper_scan != $style(3),$style(1)) s&can on join
-  ...$menu_enable_oper_scan switch OFF scanning : disable_oper_scan
-  ...-  
-  ...$oper_scan_net switch ON for this network : toggle_oper_scan_net
-  ...$oper_scan_cid switch ON for this connection id (temporary) : toggle_oper_scan_cid
-  ...-
-  ...$oper_scan_cid_chan switch ON for this channel/connection id (temporary) : toggle_oper_scan_cid_chan
-  ...$oper_scan_net_chan [switch ON for this channel/network] : toggle_oper_scan_net_chan
-  ...-
-  ...$oper_scan_client [switch ON for this irc-client] : toggle_oper_scan_client
-
-  .$style_net_chan_link network channel link 
-  ..$style_link_on turn on here : {
-    if ($varname_global(network-link,$chan).value > 0) { set $varname_global(network-link,$chan) 0 | status_msg set channel-link $chan off }
-    else { set $varname_global(network-link,$chan) $cid | status_msg set channel-link $chan $cid }
-  }
-  ..-
-  ..in&fo : /script_info -chan_link
-  .$style_annc_urls describe urls
-  ..$style_annc_urls switch ON .url crawl : annc_urls_toggle
-  ..$style_annc_urls_secure only use secure connections : annc_urls_toggle_secure
-  ..-
-  ..info : script_info -urls
-  .-
-
-  .$style_auto_ial [&auto update ial] : toggle_auto_ial
-
-  &trio-ircproxy.py
-  .&visit your home-page : proxy_msg visit homepage
-  .&visit proxy list : run https://www.mslscript.com/proxy.html
-  .-
-
-  ; Keep track of the IP and PORT in use so you know where to send the shutdown command to
   &connect irc
   .last used : /server
   .-
@@ -330,15 +228,13 @@ menu Status,Channel {
   ..192.168.0.17 +6697 : /proxy off | var %net = $iif(($network),$network,$$?="enter network name:") | /server 192.168.0.17:+6697 $$?="enter your username:" $+ / $+ %net $+ : $+ $$?="enter your password:"
   .-
   .without proxy nor vhost : /proxy off | /server $server(1, $iif(($network),$network,$$?="enter network name:"))
-  ; command history
-  ;.xcdcc send #899 : /msg [MG]-MISC|EU|S|RandomPunk xdcc send #899
 }
-alias -l style_link_on {
+alias style_link_on {
   if (!$chan) { return $style(2) }
   if ($varname_global(network-link,$chan).value == 1) { return $style(1) }
 
 }
-alias -l BAUDERR-ADVERTISE {
+alias BAUDERR-ADVERTISE {
   if ($1 == --chan) {
     describe $$2 is using Machine Gun mSL script named Bauderr. use ctcp version / script / source for more info.
   }
@@ -349,10 +245,10 @@ alias style_auto_ial {
 alias toggle_auto_ial {
   set $varname_global(auto_ia1,blank) $iif($1 != $null,$1,$iif(($varname_global(auto_ia1,blank).value == $true || $varname_global(auto_ia1,blank).value == $null),$false,$true))
 }
-alias -l style_annc_urls {
+alias style_annc_urls {
   return $iif(($varname_cid(annc_urls,blank).value),$style(1))
 }
-alias -l annc_urls_toggle {
+alias annc_urls_toggle {
   set $varname_cid(annc_urls,blank) $iif(($varname_cid(annc_urls,blank).value),$false,$true)
 }
 alias query_menu {
@@ -365,15 +261,15 @@ alias ialupdate_menu {
   if ($chan($1).status != joined) { return $style(2) $chan($1) - $chan($1).status : return }
   if ($chan($1)) { return $chan($1) $ialupdated($chan($1)) : if ($ial) { ialfill -f $chan($1) } }
 }
-alias -l ivtrue {
-  return $false
-}
 alias play-sound-history {
-  if ($1 isin begin end) { return asdf }
+  if ($1 isin beginend) { return }
   if ($1 == 16) { return }
-  var %fn = $varname_global(sound-history,$1).value
+  var %fn = $var($varname_global(sound-history,*),$1)
+  echo >> $var($varname_global(sound-history,*),$1)
+  var %fn = [ [ %fn ] ]  
   if (!%fn) { return }
-  return $nopath(%fn) : play-sound $eval($iif($active == $chan || $active == $nick,$ifmatch,$gettok($$?="enter a room or nickname to play to:",1,32)),0) %fn
+  if (!$exists(%fn)) { unset $var(%fn,1) | continue }
+  return $nopath(%fn) : play-sound $eval($iif($active == $chan || $active == $nick,$ifmatch,$gettok($$?="enter a room or nickname to play to:",1,32)) %fn, 0)
 }
 alias style_annc_urls_secure {
   if ($varname_global(urlcrawl,secure) == $null) || ($varname_global(urlcrawl,secure) == $true) { return $style(1) }
@@ -398,21 +294,16 @@ alias play-sound {
   else { if (%empty != skip) { set $varname_global(sound-history,%empty) %file } }
   var %m = is playing a sound * 76,1 E n j o y!   *
   if (C isin $chan($1).mode) { %m = $strip(%m) }
-  sound $1- %m
-  if ($varname_temp(soundfile-message,blank).value != $true) {
-    set $varname_temp(soundfile-message,blank) $true
-    .timersoundfile-message -o 1 $calc(60 * 12) /set $varname_temp(soundfile-message,blank) $false
-  }
-  else { return }
-  echo (for other ppl to listen to the sound file they paste) ! $+ $me $nopath(%file)  (in channel or private message. use /splay stop)
+  .timer -om 1 1 /sound $1- %m
+  echo -a (for other ppl to listen to the sound file they MUST paste) ! $+ $me $nopath(%file)  (in channel or private message. you can use /splay stop to end the sound.)
 }
-alias -l oper_scan_client {
+alias oper_scan_client {
   if ($varname_global(oper-scan-client,blank).value == $true) { return $style(1) }
 }
-alias -l toggle_oper_scan_client {
+alias toggle_oper_scan_client {
   set $varname_global(oper-scan-client,blank) $iif(($1 isin $!true$false),$1,$iif(($varname_global(oper-scan-client,blank).value == $true),$false,$true))
 }
-alias -l open_allowed_url {
+alias open_allowed_url {
   var %fn = $qw($scriptdirprevention\allowed-url-list.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
@@ -423,34 +314,34 @@ alias -l open_bad_word {
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
-alias -l open_bad_script {
+alias open_bad_script {
   var %fn = $qw($scriptdirprevention\bad-scripts.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
-alias -l open_bad_chan {
+alias open_bad_chan {
   var %fn = $qw($scriptdirprevention\bad-chan-list.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
-alias -l open_allowed_room {
+alias open_allowed_room {
   var %fn = $qw($scriptdirprevention\allowed-room-names.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
 }
-alias -l style_bad_chan_off {
+alias style_bad_chan_off {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_bad_chan,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_bad_chan {
+alias style_bad_chan {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_bad_chan,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_default {
+alias style_allow_default {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_default,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_repeat {
+alias style_allow_repeat {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_repeat,$network $+ $chan).value) { return $style(1) }
 }
@@ -462,77 +353,77 @@ alias style_bad_script_ban {
   if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_bad_scripts,$network  $+ $chan).value == $true) { return $style(1) }
 }
-alias -l style_bad_chan {
+alias style_bad_chan {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_bad_chan,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_url {
+alias style_allow_url {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_url,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_url_off {
+alias style_allow_url_off {
   if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_url,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_room_name {
+alias style_allow_room_name {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_name,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_room_name_on {
+alias style_allow_room_name_on {
   if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_name,$network $+ $chan).value) { return $style(1) }
 }
 
-alias -l style_allow_binart {
+alias style_allow_binart {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_binart,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_bad_word {
+alias style_allow_bad_word {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_bad_word,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_bad_word_off {
+alias style_allow_bad_word_off {
   if (!$network) || (!$chan) { return }
   if (!$varname_global(allow_bad_word,$network $+ $chan).value) { return $style(1) }
 
 }
-alias -l style_allow_idle {
+alias style_allow_idle {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_idle,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_share {
+alias style_allow_share {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_sharing,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_clone {
+alias style_allow_clone {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_clone,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_rand_nick {
+alias style_allow_rand_nick {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_rand_nick,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_long_word {
+alias style_allow_long_word {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_long_word,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_line {
+alias style_allow_line {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_long_line,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_paste {
+alias style_allow_paste {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_paste,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_non_default {
+alias style_allow_non_default {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_non_default,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_rand_text {
+alias style_allow_rand_text {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_rand_text,$network $+ $chan).value) { return $style(1) }
 }
-alias -l style_allow_ascii {
+alias style_allow_ascii {
   if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_rand_text,$network $+ $chan).value) && $&
     (!$varname_global(allow_room_paste,$network $+ $chan).value) && $&
@@ -680,7 +571,7 @@ alias set_allow_room_name {
   else { unset $varname_global(allow_room_name,$network $+ $chan) }
   if ($varname_global(allow_room_name,$network $+ $chan).value) { set $varname_global(allow_room_default,$network $+ $chan) $true }
 }
-alias -l menu_enable_oper_scan {
+alias menu_enable_oper_scan {
   if ($varname_cid(oper-scan-cid).value) { return }
   if ($chan && $varname_cid(oper-scan-cid-chan,$chan).value) { return }
   if ($network && ($varname_global(oper-scan-net,$network).value)) { return }
@@ -708,12 +599,12 @@ alias toggle_oper_scan_net_chan {
   else { /set $varname_global(oper-scan-net-chan,$+($$network,$$Chan)) $false }
 }
 
-alias -l oper_scan_cid_chan {
+alias oper_scan_cid_chan {
   if ($chan == $null) { return $style(2) }
   if ($varname_cid(oper-scan-cid-chan,$$chan).value) { return $style(1) }
 
 }
-alias -l toggle_oper_scan_cid_chan {
+alias toggle_oper_scan_cid_chan {
   if (!$varname_cid(oper-scan-cid-chan,$$chan).value) {
     /set $varname_cid(oper-scan-cid-chan,$chan) $true
   }
@@ -722,7 +613,7 @@ alias -l toggle_oper_scan_cid_chan {
   }
 }
 
-alias -l oper_scan_cid {
+alias oper_scan_cid {
   if ($varname_cid(oper-scan-cid).value) { return $style(1) }
 
 }
@@ -751,59 +642,57 @@ alias style-proxy-shutdown {
 
 }
 alias /proxy-shutdown {
-  if ($varname_cid(using-bnc) == $true) {
+  if ($varname_cid(trio-ircproxy.py,active) == $true) {
     /raw proxy-shutdown NOW
   }
 }
 ;-
 ; chanserv exists:
 ;-
-alias -l identify_here_popup {
+alias identify_here_popup {
   if ($bool_using_proxy != $true) { return }
-  if ($varname_global(identify-chanserv,$+($chan,-,$$network)).value == $chan) { return identify here }
+  if ($varname_global(can-identify-chanserv,$+($$chan,-,$$network)).value != $null) { return identify here }
 }
 ;-
-alias -l identify_chans_popup {
+alias identify_chans_popup {
   if ($1 == begin) { return }
   if ($1 == end) { return }
-  var %chan = $var($varname_global(identify-chanserv,$+(*,-,$$network)),$1)
+  var %chan = $var($varname_global(can-identify-chanserv,$+(*,-,$$network)),$1)
   %chan = [ [ %chan ] ]
-  if (%chan == $null) && ($1 == 1) { return no channels : eecho you have not identified as founder of channel(s) on this network ( $+ $network $+ ). $chr(124) eecho after you identify as an founder your channel will be listed in the menu. }
+  if (%chan == $null) && ($1 == 1) { return no channels : eecho -sep You have no channels with logged passwords }
   return %chan : /bnc_msg identify-chanserv %chan
 }
 on *:quit: {
   if ($nick == $me) { unset $varname_cid(trio_ircproxy.py,active) }
 }
-alias status_usenick_pop {
-  if (!$varname_cid(trio-ircproxy.py,active).value) { return $style(2) }
-  if ($varname_glob(status-nick,none).value == $1) { return $style(1) }
-}
+
 alias bool_using_proxy {
   if ($varname_cid(trio-ircproxy.py,active).value) { return $true }
   return $false
 }
 alias style_proxy {
-  if (!$varname_cid(trio-ircproxy.py,active).value) { return $style(2) }
+  if (!$bool_using_proxy) { return $style(2) }
 }
-on *:text:*:$chr(42) $+ mg-script: {
+on *:text:*:$chr(42) $+ status: {
   tokenize 32 $strip($1-)
   if ($1- == Trio-ircproxy.py active for this connection) { set $varname_cid(trio-ircproxy.py, active) $true }
   if ($4 != $null) && (*your username is ???* iswm $1-4) { set $varname_cid(trio-ircproxy.py, is_user) $4 }
   if (say-away == $1) && ($2 isin $true$false) { set $varname_glob(say-away,none) $2 }
   if (operscan-join == $1) && ($2 isin $true$false) { set $varname_cid(operscan-join,none) $2 }
-  if ($1 == identify-chanserv) { set $varname_cid(identify-chanserv,$network) $true }
-  if ($1 == identify-nick) { return }
+  if ($1 == can-identify-chanserv) && (#* iswm $$2) { set $varname_cid(can-identify-chanserv,$+($2,-,$network)) $2 }
+  if ($1 == can-identify-nick) && ($$2) { set $varname_cid(can-identify-nick,$+($2,$$network)) $2 }
+
 }
-alias -l popup-identify-founder-list {
+alias popup-identify-founder-list {
   if ($bool_using_proxy == $false) {  return $style(2) identify as &founder  }
-  var %chan = $var($varname_global(identify-chanserv,$+(*,-,$$network)),1)
+  var %chan = $var($varname_global(can-identify-chanserv,$+(*,-,$$network)),1)
   var %chan = [ [ %chan ] ]
   if (%chan) { 
     if (!$varname_cid(identified-founder,%chan)) {
     return identify as &founder }
   }
   else {
-    retrun $style(3) identify as &founder
+    retrun $style(2) identify as &founder
   }
 }
 alias true$false {
@@ -814,31 +703,10 @@ alias is_status_nick {
   ;;
   if ($1) { var %nick = $1 }
   elseif ($nick != $null) { var %nick = $nick }
-  if ($chr($asc(*)) $+ mg-script != %nick) { return $false }
+  if ($chr($asc(*)) $+ STATUS != %nick) { return $false }
   return $true
 }
-menu menubar {
-  $iif((!$var(%bde_glob_*history*,0)),$style(2)) erase history : unset %bde_glob_*history* | eecho you have erased your history.
-  $iif(($os isin 7,10,11),&set client faster (High)) : eecho changed priority of all running $nopath($mircexe) and python3.exe (py.exe) apps to 'High' | run -hn wmic process where name=" $+ $nopath($mircexe) $+ " CALL setpriority 128 | run -hn wmic process where name="python.exe" CALL setpriority 128 | run -hn wmic process where name="py.exe" CALL setpriority 128 | run -hn wmic process where name="python3.exe" CALL setpriority 128
-  -
-  server commands
-  .knock room $chan : /raw knock $$chan
-  .help help : raw help help
-  .help : raw help
-  .-
-  .info : raw info
-  .time : raw time
-  .-
-  .users : raw users
-  .long users : raw lusers
-  .-
-  .list channels : list
-  .server links : raw links
 
-
-
-
-}
 on *:input:$chan: {
   if (*?> $chr(35) $+ ?* !iswm $1-) { return }
   tokenize 32 $strip($1-)
@@ -848,7 +716,6 @@ on *:input:$chan: {
   var %name = $remove($1,<,>,+,@,%,&,!)
   if (!%name) { return }
   msg %name xdcc send $chr(35) $+ %num
-  halt
 }
 menu @script_info {
   close window : window -c $active
@@ -856,20 +723,12 @@ menu @script_info {
   flood : /script_info -flood
   channel history : script_info -history
   identity : script_info -identity
-  listen ip : script_info -listen
-  listen port : script_info -port
 }
 alias bnc_msg {
-  if (!$varname_glob(status-nick,none).value) { return }
   if ($bool_using_proxy != $true) { return }
-  if ($strip($1) == $null) { return }
-  if ($silence) { .msg $varname_glob(status-nick,none).value $1- }
-  else { msg $varname_glob(status-nick,none).value $1- }
+  if ($silence) { .msg *status $1- }
+  else { msg *status $1- }
 }
 alias status_msg {
   bnc_msg $1-
-}
-alias errecho {
-  if ($active == Status Window) { echo -a 4Error: $1- }
-  else { echo -as 4Error: $1- }
 }

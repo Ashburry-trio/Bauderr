@@ -39,14 +39,13 @@ alias ialupdated {
   return $iif(($chan($1).ial == $true), - updated, - false)
 }
 on *:part:#: {
-  if ($nick == $me) { .timerallow $+ $$network $+ $chan 1 10 /unset %bde_*allow* $+ $$network $+ $chan $+ * }
+  if ($nick == $me) { .timerallowcid $+ $cid $+ $chan 1 25 /unset %bde_*allow* [ $+ [ $$network $+ $chan $+ * ] ] }
 }
 on *:kick:#: {
-  if ($knick == $me) { .timerallow $+ $cid $+ $chan 1 10 /unset %bde_*allow* [ $+ [ $$network $+ $chan $+ * ] ] }
+  if ($knick == $me) { .timerallowcid $+ $cid $+ $chan 1 25 /unset %bde_*allow* [ $+ [ $$network $+ $chan $+ * ] ] }
 }
 on *:join:#: {
-  if ($nick == $me) { .timerallow $+ $cid $+ $chan off | return }
-  status_msg get chan_allow $chan
+  if ($nick == $me) { .timerallowcid $+ $cid $+ $chan off | return }
 }
 alias qw {
   var %text = $1
@@ -144,11 +143,18 @@ alias script_info {
   }
 
 }
+alias errecho {
+  if ($active == Status Window) { echo -a 4Error: $1- }
+  else { echo -as 4Error: $1- }
+}
 alias /op /mode # +ooo $$1 $2 $3
 alias /dop /mode # -ooo $$1 $2 $3
-alias /j /join #$$1 $2-
+alias /j {
+  if ($left($active,1) isin $chr(35) $+ &) && ($left($1,1) !isin $chr(35) $+ &) && ((part isin $chan($chan).status) || (kick isin $chan($chan).status)) { join $active $1- }
+  else { /join #$$1 $2- }
+}
 alias /p {
-  if ($left($1,1) == $chr(35)) { /part $1- }
+  if ($left($1,1) isin $chr(35) $+ &) { /part $1- }
   else { /part # $1- }
 }
 alias /n /names #$$1

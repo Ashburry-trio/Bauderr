@@ -11,3 +11,8 @@
 %bde_glob_old_nick#3 Ashburry
 %bde_glob_topic_history_#ELITEWAREZ#1698713220  :: 10#0ELiTEWAREZ :: Search: 4ONLINE 0::0 Join 10#0ELITE-CHAT for S10earch0, S10ubscriptions0, and C10hat0!
 %bde_glob_topic_history_#elite-chat#1698713225 1 11,1:: 514,1E14L14i0T0E00W0A14R14E14Z 11:: 0Search: 11ONLINE1|0Triggers: 15!help !search !latest !recommended !hot !movies !music !tv !bluray !apps !games !ebooks !xxx 11::11 average bandwidth per user: 34 mb/s 
+%bde_glob_topic_history_#lawnmower#1698881868 Welcome to the Undernet Lawnmower Project! Check out https://jotunheimr.org/users/jotun/lawnmower/ for more info.
+%bde_glob_topic_history_#5ioE#1698882258 65,885ioE (SidE) Gang recruiting. needed are programmers in mSL, HTML, or Python 3. Nothing difficult. https://github.com/ashburry-chat-irc
+%bde_glob_topic_history_#help#1698901018 Welcome to #Help! Ask your question(s) in the channel and wait patiently for an answer! Email: help@undernet.org ( Visit --> https://help.undernet.org )
+%bde_glob_old_nick#4 asdasdf
+%bde_glob_sound-history#1 "C:\Users\ashbu\Downloads\Dice Games Similar to Yahtzee.html"
