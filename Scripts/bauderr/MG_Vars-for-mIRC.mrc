@@ -16,3 +16,9 @@
 %bde_glob_topic_history_#help#1698901018 Welcome to #Help! Ask your question(s) in the channel and wait patiently for an answer! Email: help@undernet.org ( Visit --> https://help.undernet.org )
 %bde_glob_old_nick#4 asdasdf
 %bde_glob_sound-history#1 "C:\Users\ashbu\Downloads\Dice Games Similar to Yahtzee.html"
+%bde_glob_old_nick#5 Guest46636
+%bde_glob_sound-history#2 "C:\Users\ashbu\AppData\Roaming\mIRC\downloads\Sarah.Kuhn.-.From.Little.Tokyo,.with.Love.mp3\Sarah Kuhn - From Little Tokyo, with Love.mp3"
+%bde_glob_old_nick#6 Ashburry_
+%fn C:\Users\ashbu\Documents\Machine-Gun\to-do.txt
+%text Bauderr,Ashburry,,,,,,,,,#lawnmower,#5ioE,,,,,,,,
+%send-to Type a nick or chan

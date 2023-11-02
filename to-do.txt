@@ -13,6 +13,8 @@ Recover channel operator in empty channel.
 List multiple occurences of the same nick(s) in a set of channels
 Changing the password does not take affect until the new password has been used,
 Force nick for spcific networks, on start
-Self Collide Prevention : Prevent using the same nick on the same network throughout all client connections.
-: also changing to a nick that is in a common channel on any given network.
-: nick collide bots will not work with this proxy as best as can be avoided.
+Self Collide Prevention : Prevent using the same nick on the same network throughout all client 
+connections. Instead have two connections to the same nickname on the same network.
+: also changing to a nick that is in a common channel on any given network, that is not the users nickname on a proxy will 
+generate a warning that the nickname is already in use elseware and it is not polite to steal nicknames. DO not allow the nick change.
+: nick collide bots will not work with this proxy as best as can be avoided. If a personal flood is happening part aall channels change nickname to flod bots nick only 1 char changed, rejoin all channels.

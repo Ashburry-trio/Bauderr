@@ -1,5 +1,20 @@
-;TODO add all menu item separators, .-, in the remotes menus; not the popups.ini
-; /set_show_away 1 = notice 2 = private message 0 = off
+alias ascii-art-select {
+
+  var %fn = $scriptdirart\ascii-art\
+  if ($left($active,1) != $chr(35)) && (!$nick) {
+    var %sendto = Type a nick or chan
+    while (%sendto == Type a nick or chan) {
+      %sendto = $$input(Which nickname or room would you like to play the ascii-art file to:,eyfgqbdxm,What nickname or room do you want to play to:,Type a nick or chan,$chat(1),$chat(2),$chat(3),$chat(4),$chat(5),$query(1),$query(2),$query(3),$query(4),$query(5),$query(6),$query(7),$query(8),$query(9),$query(10),$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10))
+    }
+    if (%sendto == $false) { return }
+  }
+  else {
+    if ($nick) { %sendto = $nick }
+    if ($chan) { %sendto = $chan }
+  }
+  %fn = $sfile(%fn $+ *.txt,Select a ascii-art file:, Play))
+  /play -m5 %sendto $qt(%fn) 620
+}
 alias menu_parted {
   if ($1 isin endbegin) { return }
   if (!$chan($1)) { return - }
@@ -124,7 +139,14 @@ alias style_show_away_priv {
   if ($status != connected) || (!$network) { return }
   if ($varname_global(show_away,blank).value == 2) { return $style(3) }
 }
+alias style_auto_join {
+  if ($varname_cid(auto_join,on).value == $true) { return $style(1) }
+}
 
+alias toggle_auto_join {
+  if ($varname_cid(auto_join,on).value == $true) { unset $varname_cid(auto_join,on) }
+  else { set $varname_cid(auto_join,on) $true }
+}
 alias style_show_away {
   if ($bool_using_proxy != $true) { return $style(2) }
   return $iif($style_show_away_priv $+ $style_show_away_note,$style(1))
@@ -265,7 +287,6 @@ alias play-sound-history {
   if ($1 isin beginend) { return }
   if ($1 == 16) { return }
   var %fn = $var($varname_global(sound-history,*),$1)
-  echo >> $var($varname_global(sound-history,*),$1)
   var %fn = [ [ %fn ] ]  
   if (!%fn) { return }
   if (!$exists(%fn)) { unset $var(%fn,1) | continue }
