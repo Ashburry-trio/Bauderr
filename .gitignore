@@ -1,6 +1,5 @@
 script1.mrc
-*\Downloads\*
-*/Downloads/*
+*Downloads*
 *.idea\*
 *.chm
 *deploy*
