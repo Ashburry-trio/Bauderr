@@ -147,21 +147,32 @@ alias errecho {
   if ($active == Status Window) { echo -a 4Error: $1- }
   else { echo -as 4Error: $1- }
 }
-alias /op /mode # +ooo $$1 $2 $3
-alias /dop /mode # -ooo $$1 $2 $3
+alias showtags {
+  if ($1- == $null) { echo 2 -e * /showtags: please specify filename, eg. /showtags file.mp3 | return }
+  if (!$exists($1-)) { echo 1 -e * /showtags: the filename you specified does not exist | return }
+  echo 1 id3: $sound($1-).id3
+  echo 1 tags: $sound($1-).tags
+  var %n = $sound($1-,0).tag
+  while (%n > 0) {
+    echo 1 tag: $sound($1-,%n).tag
+    dec %n
+  }
+}
+
+alias /op /mode # +oooo $$1 $2 $3 $4
+alias /dop /mode # -oooo $$1 $2 $3 $4
 alias /j {
-  if ($left($active,1) isin $chr(35) $+ &) && ($left($1,1) !isin $chr(35) $+ &) && ((part isin $chan($chan).status) || (kick isin $chan($chan).status)) { join $active $1- }
-  else { /join #$$1 $2- }
+  if ($1 ischan) || ($left($active,1) isin $chr(35) $+ &) && ($left($1,1) !isin $chr(35) $+ &) && (((part isin $chan($chan).status) || (kick isin $chan($chan).status))) { join $active $1- }
+  else { /join #$$1- }
 }
 alias /p {
-  if ($left($1,1) isin $chr(35) $+ &) { /part $1- }
-  else { /part # $1- }
+  if ($1 ischan) { /part $1- | return } | if ($active ischan) { /part # $1- }
 }
-alias /n /names #$$1
+alias  if ($left($1,1) isin $chr(35) $+ &) { /names $$1 | return } | if ($active ischan) { /names # }
 alias /w /whois $$1
-alias /k /kick # $$1 $2-
+alias if ($left($1,1) isin $chr(35) $+ &) { kick $$1 $2- | return } | if ($active ischan) { /kick # $$1 $2- }
 alias /q /query $$1
 alias /send /dcc send $1 $$2-
-alias /chat /dcc chat $1
+alias /chat /dcc chat $1-
 alias  /ping /ctcp $$1 ping
 alias /s /server $$1-

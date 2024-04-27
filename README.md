@@ -1,17 +1,17 @@
 Machine-Gun/Bauderr
 ===================
 
-Machine-Gun script named [Bauderr](https://www.mslscript.com) for [mIRC
+Machine-Gun script named [Bauderr](https://ashburry.pythonanywhere.com) for [mIRC
 ](https://www.mirc.com/get.html)and [Adiirc](https://adiirc.com/download.php)
 clients. Internet Relay Chat script networked with
-[www.mslscript.com](https://www.mslscript.com/) account and proxy-servers. if
+[ashburry.pythonanywhere.com](https://ashburry.pythonanywhere.com/) account and proxy-servers. if
 you are using a terminal client you may find it easier to use a web-browser to
 interact with the client settings which is actually the proxy-server settings
 for that client. You will have to login with username\@client_name for your
 username in your proxy-settings of your IRC client. sign-in to
-[https://www.mslscript.com/login](https://www.mslscript.com/login.html) to see
+[https://ashburry.pythonanywhere.com/login](https://ashburry.pythonanywhere.com/login.html) to see
 your available proxy servers that work with your username and password. Follow
-the instructions on <https://www.mslscript.com/proxy> if you use `mIRC` or
+the instructions on <https://ashburry.pythonanywhere.com/proxy> if you use `mIRC` or
 `Adiirc` clients. if you are going to open the script more than once; then
 copy/paste the `Machine-Gun` folder to a new folder name, such as
 `Machine-Gun-copy2` so that you are not running the same script-files more than
@@ -25,7 +25,7 @@ Bauderr\@Client_Name
 --------------------
 
 when you sign-in to a IRC server, with the proxy-server credentials found at
-<https://www.mslscript.com/proxy>, then the popup menus will unlock on servers
+<https://ashburry.pythonanywhere.com/proxy>, then the popup menus will unlock on servers
 you are connected to via proxy-server. your session will resume on the network
 if you have connected to it before. use `/msg *status ActiveChans` to view all
 client-names, networks, and joined rooms you are in, `*status` will also shows
