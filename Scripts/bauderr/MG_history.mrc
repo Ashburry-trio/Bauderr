@@ -51,16 +51,17 @@ on *:topic:#: {
   :end
   var %t = $+(topic_add-,$network,-,$chan)
   if ($chan($chan).topic == $null) { .timer $+ %t off | return }
-  else { .timer $+ %t -o 1 35 /topic_history_add $chan $1- }
+  else { .timer $+ %t -oi 1 35 /topic_history_add $chan $replacex($1-,$chr(124),$chr(1)) }
 }
 raw 332:*: {
   var %t = $+(topic_add-,$network,-,$chan)
-  .timer $+ %t -o 1 35 /topic_history_add $2 $3-
+  .timer $+ %t -oi 1 35 /topic_history_add $2 $replacex($3-,$chr(124),$chr(1))
 }
 alias topic_history_remove {
   unset $var($varname_global(topic_history_ $+ $$chan,*),$$1)
 }
 alias topic_history_add {
+  tokenize 32 $replacex($2-,$chr(1),$chr(124))
   if ($varname_global(topic_history_switch,on).value == $false) { return }
   exp_topics
   var %chan = $1
@@ -80,7 +81,7 @@ alias topic_history_add {
   if ([ [ %varname ] ] === $2-) { return }
   goto loop
   :end
-  set -n $varname_global(topic_history_ $+ %chan,$ctime) $2-
+  set -n $varname_global(topic_history_ $+ %chan,$ctime) $eval($2-,1)
 }
 alias remove_oldest_topic {
   var %chan = #$$1

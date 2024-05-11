@@ -315,8 +315,11 @@ alias play-sound {
   else { if (%empty != skip) { set $varname_global(sound-history,%empty) %file } }
   var %m = is playing a sound * 76,1 E n j o y!   *
   if (C isin $chan($1).mode) { %m = $strip(%m) }
-  .timer -om 1 1 /sound $1- %m
+  .timer -om 1 1 /playsound $replacex($1- %m,$chr(124),$chr(1))
   echo -a (for other ppl to listen to the sound file they MUST paste) ! $+ $me $nopath(%file)  (in channel or private message. you can use /splay stop to end the sound.)
+}
+alias playsound {
+  play $replacex($1-,$chr(1),$chr(124))
 }
 alias oper_scan_client {
   if ($varname_global(oper-scan-client,blank).value == $true) { return $style(1) }
