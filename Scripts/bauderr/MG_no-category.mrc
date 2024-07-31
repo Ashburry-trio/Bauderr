@@ -1,3 +1,5 @@
+; * Break: command halted (line 91, MG_no-category.mrc)
+; Low on RAM script cannot run!! Maybe missing a opening or closing parentehsis  ()
 on *:start: {
   bde_start
 }
@@ -21,36 +23,86 @@ alias bde_start {
 on *:connect: {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
 }
-
-on *:text:*:$chr(42) $+ status: {
-  if ($1- == :trio-ircproxy active) {
-    set -e $varname_cid(trio-ircproxy.py,active) $true
-    msg $nick mg-script active
+on *:quit: {
+  if ($nick != $me) { return }
+  ; DO all the code below in Python and just report in
+  var %i = 1
+  while $chan(%i) {
+    if ($chan(%i).status != joined) { inc %i | continue }
+    if ($allowcid_check_chans($chan(%i)) {
+      .timerallowcid $+ $network $+ $chan(%i) $+ ?blank off
+      return
+    }
+    .timerallowcid $+ $network $+ $chan(%i) -oi 1 25 /unset $allow_unset_var($chan(%i))
+    inc %i
   }
 }
-
-; Create on quit for $me /scid -a /set variable value $+ $$network $status to see 
-; if any connections remain on the quit network befre unsetting %bde_*allow* $+ $network $+ *
-; do not unset %*allow* if it is still in use by another connection. Same with channels.
-; this must be done through Python
-
+alias -l allow_unset {
+  return %bde_*allow* [ $+ [ $$network $+ $1 $+ $chr(35) $+ blank ] ]
+}
+on *:text:$chr(58) $+ trio-ircproxy isactive:$chr(42) $+ status: {
+  set -e $varname_cid(trio-ircproxy.py,active) $true
+  msg $nick mg-script active
+}
+alias allowcid_check_chans {
+  if ($fromeditbox) || (!$isid) { return $false }
+  var %i = 1
+  while ($cid(%i)) {
+    if ($nextchan_allowcid(%i,$1)) {
+      return $true
+    }
+    inc %i
+  }
+  ; Continue
+  return $false
+}
+alias nextchan_allowcid {
+  if ($fromeditbox) || ($isid == $false) { return $false }
+  if ($cid($1) == $cid) { return $false }
+  if ($scid($cid($1)).$network != $network) { return $false }
+  nextchan_reset
+  while ($cid($1).$nextchan) {
+    if ($v1 == $2) { /nextchan_reset | return $true }
+  }
+  return $false
+}
+alias nextchan {
+  set $varname_global(allowcid_nextchan) $calc($varname_global(allowcid_nextchan).value + 1)
+  if ($chan($varname_global(allowcid_nextchan).value).status) {
+    if ($v1` == joined) { return $chan($varname_global(allowcid_nextchan)) }
+  }
+  else { nextchan_reset | return $false }
+}
+alias nextchan_reset {
+  if ($fromeditbox) || ($isid) { return }
+  unset $varname_global(allowcid_nextchan)
+}
 alias ialupdated {
-  if ($1 == $null) { return }
-  return $iif(($chan($1).ial == $true), - updated, - false)
+  if ($1 == $null) || ($fromeditbox) || (!$isid) { return }
+  return $iif(($chan($1).ial == $true), - updated, - update ial)
 }
 on *:part:#: {
-  if ($nick == $me) { .timerallowcid $+ $cid $+ $chan 1 25 /unset %bde_*allow* [ $+ [ $$network $+ $chan $+ * ] ] }
+  if ($nick != $me) { return }
+  if ($allowcid_check_chans($chan)) { .timerallowcid $+ $network $+ $chan -io 1 25 /unset $allow_unset_var($chan) }
+
 }
 on *:kick:#: {
-  if ($knick == $me) { .timerallowcid $+ $cid $+ $chan 1 25 /unset %bde_*allow* [ $+ [ $$network $+ $chan $+ * ] ] }
+  if ($nick != $me) { return }
+  if ($allowcid_check_chans($chan)) { .timerallowcid $+ $network $+ $chan -io 1 25 /unset $allow_unset_var($chan) }
 }
 on *:join:#: {
-  if ($nick == $me) { .timerallowcid $+ $cid $+ $chan off | return }
+  if ($nick != $me) { return }
+  .timerallowcid $+ $network $+ $chan off
 }
 alias qw {
-  var %text = $1
-  while ($left(%text,1) isin '"`) { %text = $right(%text,-1) }
-  while ($right(%text,1) isin '"`) { %text = $left(%text,-1) }
+  ; Is an identifier which takes one string item to quote. Must be an $id.
+  ; First removes all quotes from start and end of string
+  ; Then quotes the string
+  if (!$siid) { return }
+  var %text = $strip($1)
+  var %comp = '"` $crlf $+ $chr(9)
+  while ($left(%text,1) isin %comp) { %text = $right(%text,-1) }
+  while ($right(%text,1) isin %comp) { %text = $left(%text,-1) }
   return $qt(%text)
 }
 on *:exit: {
@@ -73,36 +125,41 @@ alias strip-space-regx {
   var %v = $regsubex($1-,/^\s+|\s+$/g,) | return %v 
 }
 alias strip-space-var {
-  var %v = $1-
-  while ($left($1,1) isin $crlf $+ $chr(32)
+  var %v = $crlf $+ $chr(32) $+ $chr(9)
+  while ($left($1,1) isin %v) {
+    tokenize 32 $left($1-,-1)
+  }
+  while ($right($1,1) isin %v) {
+    tokenize 32 $right($1-,-1)
+  }
 }
 alias varname_cid {
-  if ($1 == $null) { return }
+  if (!$0) || (!$isid) || ($fromeditbox) { return }
   ; to the connection id only
   var %varname = $+(%,bde_cid_,$1,!,$iif(($2 == $null),blank,$2),$chr(35),$activecid)
   if ($prop == value) { return [ [ %varname ] ] }
   return %varname
 }
 alias varname_network {
-  if ($1 == $null) { return }
+  if (!$0) || (!$isid) || ($fromeditbox) { return }
   var %varname = $+(%,bde_net_,$1,!,$iif(($2 == $null),blank,$2),$chr(35),$network)
   if ($prop == value) { return [ [ %varname) ] ] }
   return %varname
 }
 alias varname_global {
-  if ($1 == $null) { return }
+  if (!$0) || (!$isid) || ($fromeditbox) { return }
   var %varname = $+(%,bde_glob_,$1,$chr(35),$iif(($2 == $null),blank,$2))
   if ($prop == value) { return [ [ %varname ] ] }
   return %varname
 }
 alias varname_glob {
-  if ($1 == $null) { return }
+  if (!$0) || (!$isid) || ($fromeditbox) { return }
   var %varname = $+(%,bde_glob_,$1,$chr(35),$iif(($2 == $null),blank,$2))
   if ($prop == value) { return [ [ %varname ] ] }
   return %varname
 }
 alias varname_temp {
-  if ($1 == $null) { return }
+  if (!$0) || (!$isid) || ($fromeditbox) { return }
   var %varname = $+(%,bde_temp_,$1,$chr(35),$iif(($2 == $null),blank,$2))
   if ($prop == value) { return [ [ %varname ] ] }
   return %varname
@@ -128,7 +185,6 @@ alias script_info {
     aline 52 @script_info -
     aline -p @script_info - When someone speeks a web-site address such as .url www.mslscript.com or .url https://website.com the web-page will be crawled.
     aline -p @script_info Information such as the title and description of the web-page will be printed in to the channel.
-
   }
   elseif ($1 == -flood) {
     titlebar @script_info - flood protection information
@@ -168,11 +224,11 @@ alias /j {
 alias /p {
   if ($1 ischan) { /part $1- | return } | if ($active ischan) { /part # $1- }
 }
-alias  if ($left($1,1) isin $chr(35) $+ &) { /names $$1 | return } | if ($active ischan) { /names # }
+alias /n if ($left($1,1) isin $chr(35) $+ &) { /names $$1 | return } | if ($active ischan) { /names # }
 alias /w /whois $$1
-alias if ($left($1,1) isin $chr(35) $+ &) { kick $$1 $2- | return } | if ($active ischan) { /kick # $$1 $2- }
+alias /k if ($left($1,1) isin $chr(35) $+ &) { kick $$1 $2- | return } | if ($active ischan) { /kick # $$1 $2- }
 alias /q /query $$1
 alias /send /dcc send $1 $$2-
 alias /chat /dcc chat $1-
-alias  /ping /ctcp $$1 ping
+alias /ping /ctcp $$1 ping
 alias /s /server $$1-

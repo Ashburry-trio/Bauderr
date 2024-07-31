@@ -18,7 +18,7 @@ alias ascii-art-select {
 alias menu_parted {
   if ($1 isin endbegin) { return }
   if (!$chan($1)) { return - }
-  return $chan($1) $block($chan($1).status) : part $chan($1)
+  if ($chan($1).status) { return $chan($1) $block($chan($1).status) : part $chan($1) }
 }
 alias style_part_all_rooms {
   var %i = 1
@@ -73,9 +73,7 @@ alias style_parted_rooms {
     var %parted = $true
     break
   }
-  if (!%parted) {
-    return $style(3)
-  }
+  if (!%parted) { return $style(3) }
 }
 on *:start: {
   unset %bde_temp*
@@ -84,9 +82,8 @@ raw 18:*: {
   if (www.mslscript.com isin $1-) { set $varname_cid(trio-ircproxy.py,active) $true }
 }
 on *:quit: {
-  if ($nick == $me) { 
-    unset $varname_cid(trio-ircproxy.py, active)
-  }
+  if ($nick != $me) { return }
+  unset $varname_cid(trio-ircproxy.py, active)
 }
 alias onotice-script {
   var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
@@ -679,8 +676,7 @@ alias identify_here_popup {
 }
 ;-
 alias identify_chans_popup {
-  if ($1 == begin) { return }
-  if ($1 == end) { return }
+  if ($1 == begin) || ($1 == end) { return }
   var %chan = $var($varname_global(can-identify-chanserv,$+(*,-,$$network)),$1)
   %chan = [ [ %chan ] ]
   if (%chan == $null) && ($1 == 1) { return no channels : eecho -sep You have no channels with logged passwords }
