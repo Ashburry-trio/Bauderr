@@ -214,21 +214,31 @@ alias showtags {
     dec %n
   }
 }
+alias build_mode {
+  if (!$siid) || ($fromeditbox) || ($len($1) != 1) || ($2 != $null && $2 !isnum || $2 < 1) { return }
+  var %i = 1
+  var %mode = $1
+  var %max = $iif(($modespl) || $2 || 4),$ifmatch)
+  while (%i < %max) {
+    %mode = %mode $+ $1
+    inc %i
+  }
+  return %mode
+}
 
-alias /op /mode # +oooo $$1 $2 $3 $4
-alias /dop /mode # -oooo $$1 $2 $3 $4
 alias /j {
-  if ($1 ischan) || ($left($active,1) isin $chr(35) $+ &) && ($left($1,1) !isin $chr(35) $+ &) && (((part isin $chan($chan).status) || (kick isin $chan($chan).status))) { join $active $1- }
+  if (($active ischan) && ($1 !ischan) || (((part isin $chan($chan).status) || (kick isin $chan($chan).status))) { join $active $1- }
   else { /join #$$1- }
 }
-alias /p {
-  if ($1 ischan) { /part $1- | return } | if ($active ischan) { /part # $1- }
-}
-alias /n if ($left($1,1) isin $chr(35) $+ &) { /names $$1 | return } | if ($active ischan) { /names # }
+alias /p if ($left($1,1) isin $chantypes) { /part $$1- | return } | if ($active ischan) { /part # $1- }
+alias /n if ($left($1,1) isin $chantypes) { /names $$1 | return } | if ($active ischan) { /names # }
 alias /w /whois $$1
-alias /k if ($left($1,1) isin $chr(35) $+ &) { kick $$1 $2- | return } | if ($active ischan) { /kick # $$1 $2- }
-alias /q /query $$1
+alias /k if ($left($1,1) isin $chantypes) && ($2 != $null) { kick $1 $$2- | return } | if ($active ischan) { /kick # $$1 $2- }
+alias /q /query $$1-
+alias /op if ($left($$1,1) isin $chantypes) && ($2 != $null) { mode $1 $+(+,$build_mode(o,$calc($0 - 1)) $$2- | return } | if ($active ischan) { mode # $+(+,$build_mode(o,$0)) $$1- }
+alias /dop if ($left($$1,1) isin $chantypes) && ($2 != $null) { mode $1 $+(-,$build_mode(o,$calc($0 - 1)) $$2- | return } | if ($active ischan) { mode # $+(-,$build_mode(o,$0)) $$1- }
+alias deop dop $$1-
 alias /send /dcc send $1 $$2-
-alias /chat /dcc chat $1-
+alias /chat /dcc chat $$1-
 alias /ping /ctcp $$1 ping
-alias /s /server $$1-
+alias /s /server $1-
