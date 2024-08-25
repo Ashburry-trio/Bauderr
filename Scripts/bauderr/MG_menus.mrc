@@ -85,19 +85,34 @@ on *:quit: {
   if ($nick != $me) { return }
   unset $varname_cid(trio-ircproxy.py, active)
 }
-alias onotice-script {
+alias join_parms {
+  ; Identifier which Joins all given parameters and removes
+  ; their spaces, this is useful if you need to pass unique lines of text
+  if (!$isid) { return }
+  tokenize 32 $$1-
+  var %parsed, %i = 1
+  while ($ [ $+ [ %i ] ]) {
+    set %parsed %parsed $+ $ifmatch
+    inc %i    
+  }
+  unset %i
+  return %parsed
+}
+alias -l onotice-script {
   var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
   if (%room == #select a room) { return }
   %room = $gettok(%room,1,32)
   var %msg = $$input(Speak your notice to all chan-ops in %room $+ :,eygbqk60,Speak your notice to all chan-ops in %room,:: : MG script : .)
   !onotice %room %msg
+  unset %room, %msg
 }
-alias omsg-script {
+alias -l omsg-script {
   var %room = #$$input(Enter a room name to send op-msg to:,eygbqk60m,enter a room name to send op-msg to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
   if (%room == #select a room) { return }
   %room = $gettok(%room,1,32)
   var %msg = $$input(Enter your message to all chan-ops in %room $+ :,eygbqk60,Enter your message to all chan-ops in %room,:: : MG script : .)
   !omsg %room %msg
+  unset %room, %msg
 }
 
 alias parted_rooms {
@@ -107,12 +122,18 @@ alias parted_rooms {
   elseif ($chan($1).status == parted) { return $chan($1) $block(parted) : join $chan($1) }
   else { return - }
 }
+
 alias joinall {
-  echo $color(info) -ae * Joining all channels...
-  var %i = 1
+  var %i = 1, %chan_c = 0
   while ($chan(%i)) {
     if (join* iswm $chan(%i).status) { inc %i | continue }
-    else { join $chan(%i) }
+    else { inc %chan_c | inc %i }
+  }
+  if (%chan_c < 1) { echo $color(info) -ae * No channels to rejoin. | return }
+  echo $color(info) -ae * ReJoining %chan_c channels...
+  var %i = 1 | unset %chan_c
+  while ($chan(%i)) {
+    if (join* !iswm $chan(%i).status) { join $chan(%i) }
     inc %i
   }
 }

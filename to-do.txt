@@ -1,19 +1,21 @@
 Add scripts in Python:
+Allow naming each client ($ddename) and each session ($cid) in a client so that no two clients have the same name, and each session name is prefixed with the client name so that they are unique to each other, aslong as multiple sessions within a single client do not have the same name and no client nor session has more than one name
 Strip packet numbers of characters other than numbers. (/msg [EWG]-R-EiN-01 XDCC SEND #511\sd)
-Announce URL title to user or to channel.
-prevent password from being sent to network or dcc
+Add number sign (pound) to packet number if it is missing it
+Announce URL head x, such as words under title, desc, other desc, to user or to channel.
+colect passwords for nickserv, chanserv
+prevent passwords from being sent to network or dcc chat
 auto-authenticate when changing nick.
-Displays network interface bandwidth on a bar.
-Forward DCC SEND requests to a different client.
+Displays network interface bandwidth usage on the titlebar.
+Forward DCC SEND requests to a different client session of the hive.
 Shorten URLs with is.gd or tinyurl
-Display who is affected when a mode with a hostmask argument is set.
-Sends machine uptime to current channel.
-Automatically attempts to regain IRC primary nick.
+Display who is targeted when, a yourslef changes other users's status, sets a ban affecting multiple people, or kicks users out; using a wildcard on the chanel name and the user nickname that has a wilcard, will all show there expected results in the window the command is executed in and in *STATUS window.
+Sends machine uptime to current channel. with a .uptime command. It shows the calling users (at first sight) SEEN Time and, the hosting users (yours), BOOT TIME both in weeks, days, hours, mins,sec
+Automatically attempts to regain IRC primary nickname with nickserv commands
 Recover channel operator in empty channel.
-List multiple occurences of the same nick(s) in a set of channels
-Changing the password does not take affect until the new password has been used,
+List multiple occurences of the same nick(s) in the current channel also seen in other channels.
 Force nick for spcific networks, on start
-Self Collide Prevention : Prevent using the same nick on the same network throughout all client 
+Self Collide Prevention : Prevent using the same nick on the same network throughout all clients 
 connections. Instead have two connections to the same nickname on the same network.
 : also changing to a nick that is in a common channel on any given network, that is not the users nickname on a proxy will 
 generate a warning that the nickname is already in use elseware and it is not polite to steal nicknames. DO not allow the nick change.
