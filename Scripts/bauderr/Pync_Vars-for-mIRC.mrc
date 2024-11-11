@@ -12,7 +12,6 @@
 %bde_glob_old_nick#10 Guest29667
 %bde_glob_localinfo#blank -h
 %i 1
-%bde_glob_topic_history_#elite-chat#1722777894 1 11,1:: 514,1E14L14i0T0E00W0A14R14E14Z 11:: 0Search: 11ONLINE1|0Triggers: 15!help !search !latest !recommended !hot !movies !music !tv !bluray !apps !games !ebooks !xxx 11::11 average bandwidth per user: 52.08 Mb/s 
 %bde_glob_topic_history_#elite-chat#1722806306 1 11,1:: 514,1E14L14i0T0E00W0A14R14E14Z 11:: 0Search: 11ONLINE1|0Triggers: 15!help !search !latest !recommended !hot !movies !music !tv !bluray !apps !games !ebooks !xxx 11::11 average bandwidth per user: 54.56 Mb/s 
 %bde_glob_topic_history_#elite-chat#1722809956 1 11,1:: 514,1E14L14i0T0E00W0A14R14E14Z 11:: 0Search: 11ONLINE1|0Triggers: 15!help !search !latest !recommended !hot !movies !music !tv !bluray !apps !games !ebooks !xxx 11::11 average bandwidth per user: 49.36 Mb/s 
 %bde_glob_topic_history_#elite-chat#1722813606 1 11,1:: 514,1E14L14i0T0E00W0A14R14E14Z 11:: 0Search: 11ONLINE1|0Triggers: 15!help !search !latest !recommended !hot !movies !music !tv !bluray !apps !games !ebooks !xxx 11::11 average bandwidth per user: 47.76 Mb/s 

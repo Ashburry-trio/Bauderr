@@ -1,5 +1,7 @@
 script1.mrc
 *Downloads*
+*.tm_
+*.log
 *.idea\*
 *.chm
 *deploy*

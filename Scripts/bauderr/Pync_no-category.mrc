@@ -1,9 +1,10 @@
-; * Break: command halted (line 91, MG_no-category.mrc)
+; * Break: command halted (line 91, Pync_no-category.mrc)
 ; Low on RAM script cannot run!! Maybe missing a opening or closing parentehsis  ()
 on *:start: {
   bde_start
 }
 alias bde_start {
+  # create_shortcuts_both
   !.bigfloat off
   :adiirc
   !.switchbar off
@@ -47,7 +48,7 @@ on *:text:$chr(58) $+ trio-ircproxy isactive:$chr(42) $+ status: {
 alias allowcid_check_chans {
   if ($fromeditbox) || (!$isid) { return $false }
   var %i = 1
-  while ($cid(%i)) {
+  while ($scid(%i)) {
     if ($nextchan_allowcid(%i,$1)) {
       return $true
     }
@@ -58,10 +59,10 @@ alias allowcid_check_chans {
 }
 alias nextchan_allowcid {
   if ($fromeditbox) || ($isid == $false) { return $false }
-  if ($cid($1) == $cid) { return $false }
-  if ($scid($cid($1)).$network != $network) { return $false }
+  if ($scid($1) == $cid) { return $false }
+  if ($scid($1).$network != $network) { return $false }
   nextchan_reset
-  while ($cid($1).$nextchan) {
+  while ($scid($1).$nextchan) {
     if ($v1 == $2) { /nextchan_reset | return $true }
   }
   return $false
@@ -79,7 +80,7 @@ alias nextchan_reset {
 }
 alias ialupdated {
   if ($1 == $null) || ($fromeditbox) || (!$isid) { return }
-  return $iif(($chan($1).ial == $true), - updated, - update ial)
+  return $iif(($chan($1).ial == $true), - complete, - update ial)
 }
 on *:part:#: {
   if ($nick != $me) { return }

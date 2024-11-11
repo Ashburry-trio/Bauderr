@@ -102,7 +102,7 @@ alias -l onotice-script {
   var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
   if (%room == #select a room) { return }
   %room = $gettok(%room,1,32)
-  var %msg = $$input(Speak your notice to all chan-ops in %room $+ :,eygbqk60,Speak your notice to all chan-ops in %room,:: : MG script : .)
+  var %msg = $$input(Speak your notice to all chan-ops in %room $+ :,eygbqk60,Speak your notice to all chan-ops in %room, .: Pync script :: :)
   !onotice %room %msg
   unset %room, %msg
 }
@@ -110,7 +110,7 @@ alias -l omsg-script {
   var %room = #$$input(Enter a room name to send op-msg to:,eygbqk60m,enter a room name to send op-msg to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
   if (%room == #select a room) { return }
   %room = $gettok(%room,1,32)
-  var %msg = $$input(Enter your message to all chan-ops in %room $+ :,eygbqk60,Enter your message to all chan-ops in %room,:: : MG script : .)
+  var %msg = $$input(Enter your message to all chan-ops in %room $+ :,eygbqk60,Enter your message to all chan-ops in %room,:: : Pync script : .)
   !omsg %room %msg
   unset %room, %msg
 }
@@ -276,7 +276,7 @@ alias style_link_on {
 }
 alias BAUDERR-ADVERTISE {
   if ($1 == --chan) {
-    describe $$2 is using Machine Gun mSL script named Bauderr. use ctcp version / script / source for more info.
+    describe $$2 is using PyNet Converge mSL script named Bauderr. use ctcp version / script / source for more info.
   }
 }
 alias style_auto_ial {
@@ -299,7 +299,7 @@ alias ialupdate_menu {
   if ($1 isin beginend) { return }
   if (!$chan($1)) { return }
   if ($chan($1).status != joined) { return $style(2) $chan($1) - $chan($1).status : return }
-  if ($chan($1)) { return $chan($1) $ialupdated($chan($1)) : if ($ial) { ialfill -f $chan($1) } }
+  if ($chan($1)) { return $chan($1) $ialupdated($chan($1)) : if ($ial) { //ec -f $chan($1) } }
 }
 alias play-sound-history {
   if ($1 isin beginend) { return }
@@ -772,4 +772,20 @@ alias bnc_msg {
 }
 alias status_msg {
   bnc_msg $1-
+}
+alias create_shortcuts_style {
+  # Use this to check for existence of shortcuts
+  if ($varname_cid(trio-ircproxy.py,active).value) { return $style(2) }
+}
+alias create_shortcuts_mirc {
+  if (!$varname_cid(trio-ircproxy.py,active).value) { return }
+  run python3 $qt($scriptdircreate_shortcut.py) $qt($mircdir) $qt($scriptdir..\..\) $qt($mircdir) $qt($scriptdir..\..\icon.bmp))
+}
+alias create_shortcuts_desktop {
+  if (!$varname_cid(trio-ircproxy.py,active).value) { return }
+  run python3 $qt($scriptdircreate_shortcut.py) $qt($chr($asc(%)) $+ userprofile $+ $chr($asc(%)) $+ \Desktop) $qt($scriptdir..\..\)) $qt($mircdir) $qt($scriptdir..\..\icon.bmp))
+}
+alias create_shortcuts_both {
+  create_shortcuts_mirc
+  create_shortcuts_desktop
 }
