@@ -20,3 +20,20 @@ connections. Instead have two connections to the same nickname on the same netwo
 : also changing to a nick that is in a common channel on any given network, that is not the users nickname on a proxy will 
 generate a warning that the nickname is already in use elseware and it is not polite to steal nicknames. DO not allow the nick change.
 : nick collide bots will not work with this proxy as best as can be avoided. If a personal flood is happening part aall channels change nickname to flod bots nick only 1 char changed, rejoin all channels.
+
+
+from twilio.rest import Client
+
+# Your Twilio account SID and auth token
+account_sid = 'your_account_sid'
+auth_token = 'your_auth_token'
+client = Client(account_sid, auth_token)
+
+# Making a call
+call = client.calls.create(
+    to='+1234567890',  # The recipient's phone number
+    from_='+1098765432',  # Your Twilio number
+    url='http://demo.twilio.com/docs/voice.xml'  # URL for TwiML instructions
+)
+
+print(f"Call SID: {call.sid}")
