@@ -774,7 +774,7 @@ alias status_msg {
   bnc_msg $1-
 }
 alias create_shortcuts_style {
-  # Use this to check for existence of shortcuts
+  ; Use this to check for existence of shortcuts
   if ($varname_cid(trio-ircproxy.py,active).value) { return $style(2) }
 }
 alias create_shortcuts_mirc {
