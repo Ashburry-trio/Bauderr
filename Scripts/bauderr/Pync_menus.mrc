@@ -79,7 +79,7 @@ on *:start: {
   unset %bde_temp*
 }
 raw 18:*: {
-  if (www.mslscript.com isin $1-) { set $varname_cid(trio-ircproxy.py,active) $true }
+  if (www.myproxyip.com isin $1-) { set $varname_cid(trio-ircproxy.py,active) $true }
 }
 on *:quit: {
   if ($nick != $me) { return }

@@ -184,7 +184,7 @@ alias script_info {
     titlebar @script_info - describe URLs
     aline @script_info 54,93describe URLs
     aline 52 @script_info -
-    aline -p @script_info - When someone speeks a web-site address such as .url www.mslscript.com or .url https://website.com the web-page will be crawled.
+    aline -p @script_info - When someone speeks a web-site address such as .url www.myproxyip.com or .url https://website.com the web-page will be crawled.
     aline -p @script_info Information such as the title and description of the web-page will be printed in to the channel.
   }
   elseif ($1 == -flood) {
