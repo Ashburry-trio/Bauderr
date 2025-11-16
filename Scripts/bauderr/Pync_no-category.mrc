@@ -23,6 +23,11 @@ alias bde_start {
 }
 on *:connect: {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
+  autojoin
+}
+alias bool {
+  if ($1 == enabled) || ($1 == enable) || (($1 isnum) && ($1 > 0)) || ($1 == true) || ($1 == $true) || ($1 == on) { return $true }
+  else { return $false }
 }
 on *:quit: {
   if ($nick != $me) { return }

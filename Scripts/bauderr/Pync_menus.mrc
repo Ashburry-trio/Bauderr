@@ -1,5 +1,21 @@
+on *:start: {
+  unset %bde_cid_*
+  unset %bde_temp_*
+  unset %bde_global_*
+}
+on *:exit: {
+  unset %bde_cid_*
+  unset %bde_temp_*
+  unset %bde_global_*
+}
+on *:quit: {
+  if ($nick != $me) { return }
+  unset %bde_cid_*
+}
+on *:connect: {
+  if ($bool($varname_cid(oper-scan-cid,$network).value))
+}
 alias ascii-art-select {
-
   var %fn = $scriptdirart\ascii-art\
   if ($left($active,1) != $chr(35)) && (!$nick) {
     var %sendto = Type a nick or chan
@@ -75,15 +91,8 @@ alias style_parted_rooms {
   }
   if (!%parted) { return $style(3) }
 }
-on *:start: {
-  unset %bde_temp*
-}
 raw 18:*: {
   if (www.myproxyip.com isin $1-) { set $varname_cid(trio-ircproxy.py,active) $true }
-}
-on *:quit: {
-  if ($nick != $me) { return }
-  unset $varname_cid(trio-ircproxy.py, active)
 }
 alias join_parms {
   ; Identifier which Joins all given parameters and removes
@@ -145,29 +154,34 @@ alias style_joinall {
   }
   return $style(3)
 }
-alias style_show_away_not {
-  if ($status != connected) || (!$network) { return $style(3) }
-  if ($varname_global(show_away,blank).value == 0) { return $style(3) }
-}
-alias style_show_away_note {
-  if ($status != connected) || (!$network) { return }
-  if ($varname_global(show_away,blank).value == 1) { return $style(3) }
-}
-alias style_show_away_priv {
-  if ($status != connected) || (!$network) { return }
-  if ($varname_global(show_away,blank).value == 2) { return $style(3) }
+alias style_show_away {
+  if ($bool($varname_cid(show_away,enabled).value) == $true) { return $style(1) }
 }
 alias style_auto_join {
   if ($varname_cid(auto_join,on).value == $true) { return $style(1) }
 }
-
+on *:text:*:*Status: {
+  tokenize 32 $strip($1-)
+  if ($1- iswm $star auto-join ?*) && ($4 == $null) {
+    set $varname_cid(auto_join,on) $bool($3)
+  }
+  if ($1- == $star auto-join #?* ?*) {
+    set $varname_cid(auto_join,$3) $bool($$4)
+  }
+  if ($1- iswm $star auto-identify-room #?*) {
+    set $varname_cid(auto-identify-room,$$3) $bool($$4)
+  }
+  if ($1 iswm $star anti-idle ?*) {
+    set $varname_cid(anti-idle,enabled) $bool($3)
+  }
+  if ($1 iswm $star show-away ?*) {
+    set $varname_cid(show_away,enabled) $bool($3)
+  }
+}
+alias star return *
 alias toggle_auto_join {
   if ($varname_cid(auto_join,on).value == $true) { unset $varname_cid(auto_join,on) }
   else { set $varname_cid(auto_join,on) $true }
-}
-alias style_show_away {
-  if ($bool_using_proxy != $true) { return $style(2) }
-  return $iif($style_show_away_priv $+ $style_show_away_note,$style(1))
 }
 alias set_show_away {
   if ($1 <= 2) && ($1 >= 0)  { set $varname_global(show_away,blank) $1 }
@@ -338,12 +352,6 @@ alias play-sound {
 }
 alias playsound {
   play $replacex($1-,$chr(1),$chr(124))
-}
-alias oper_scan_client {
-  if ($varname_global(oper-scan-client,blank).value == $true) { return $style(1) }
-}
-alias toggle_oper_scan_client {
-  set $varname_global(oper-scan-client,blank) $iif(($1 isin $!true$false),$1,$iif(($varname_global(oper-scan-client,blank).value == $true),$false,$true))
 }
 alias open_allowed_url {
   var %fn = $qw($scriptdirprevention\allowed-url-list.txt)
@@ -613,71 +621,53 @@ alias set_allow_room_name {
   else { unset $varname_global(allow_room_name,$network $+ $chan) }
   if ($varname_global(allow_room_name,$network $+ $chan).value) { set $varname_global(allow_room_default,$network $+ $chan) $true }
 }
-alias menu_enable_oper_scan {
-  if ($varname_cid(oper-scan-cid).value) { return }
-  if ($chan && $varname_cid(oper-scan-cid-chan,$chan).value) { return }
-  if ($network && ($varname_global(oper-scan-net,$network).value)) { return }
-  if ($network && $chan && ($varname_global(oper-scan-net-chan,$+($$network,$$Chan)).value)) { return }
-  if ($varname_global(oper-scan-client,blank).value) { return }
-  return $style(3)
-}
+alias menu_disable_oper_scan {
+  if (!$bool($varname_cid(oper-scan-cid,$network).value)) && (!$bool($varname_global(oper-scan-net,$$network).value)) && (!$bool($varname_global(oper-scan-client).value)) { return $style(3) }
 
+}
+alias oper_scan_client {
+  if ($varname_global(oper-scan-client,blank).value == $true) { return $style(3) }
+}
+alias toggle_oper_scan_client {
+  set $varname_global(oper-scan-client,blank) $iif($bool($varname_global(oper-scan-client,blank).value) == $true,$false,$true)
+  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($bool($varname_cid(oper-scan-client).value) == $true) {
+    toggle_oper_scan_net
+  }
+  if ($bool($varname_global(oper-scan-client).value) == $true) && ($varname_cid(oper-scan-cid).value == $true) {
+    toggle_oper_scan_cid
+  }
+}
 alias disable_oper_scan {
   set $varname_cid(oper-scan-cid) $false
   if ($network) { set $varname_global(oper-scan-net,$$network) $false }
-  if ($chan) { set $varname_cid(oper-scan-cid-chan,$$chan) $false }
-  if ($chan) && ($network) { set $varname_global(oper-scan-net-chan,$+($$network,$$Chan)) $false }
   set $varname_global(oper-scan-client,blank) $false
 }
-alias oper_scan_net_chan {
-  if (!$network) || (!$chan) { return $style(2) }
-  if ($varname_global(oper-scan-net-chan,$+($$network,$$Chan)).value) { return $style(1) }
-}
-alias toggle_oper_scan_net_chan {
-  if ($network == $null) || (!$chan) { return }
-  if (!$varname_global(oper-scan-net-chan,$+($$network,$$Chan)).value) {
-    /set $varname_global(oper-scan-net-chan,$+($$network,$$Chan)) $true
-  }
-  else { /set $varname_global(oper-scan-net-chan,$+($$network,$$Chan)) $false }
-}
-
-alias oper_scan_cid_chan {
-  if ($chan == $null) { return $style(2) }
-  if ($varname_cid(oper-scan-cid-chan,$$chan).value) { return $style(1) }
-
-}
-alias toggle_oper_scan_cid_chan {
-  if (!$varname_cid(oper-scan-cid-chan,$$chan).value) {
-    /set $varname_cid(oper-scan-cid-chan,$chan) $true
-  }
-  else {
-    /set $varname_cid(oper-scan-cid-chan,$chan) $false
-  }
-}
-
 alias oper_scan_cid {
-  if ($varname_cid(oper-scan-cid).value) { return $style(1) }
-
+  if ($bool($varname_cid(oper-scan-cid,$$network).value)) { return $style(3) }
 }
 alias toggle_oper_scan_cid {
-  if ($varname_cid(oper-scan-cid).value == $true) {
-    /set $varname_cid(oper-scan-cid) $false
+  set $varname_cid(oper-scan-cid,$$network) $iif($bool($varname_cid(oper-scan-cid,$$network).value),$false,$true)
+  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($bool($varname_cid(oper-scan-cid,$$network).value) == $true) {
+    toggle_oper_scan_net
   }
-  else {
-    /set $varname_cid(oper-scan-cid) $true
+  if ($bool($varname_cid(oper-scan-cid,$$network).value) == $true) && ($bool($varname_global(oper-scan-client).value) == $true) {
+    toggle_oper_scan_client
   }
 }
 
 alias oper_scan_net {
   if ($network == $null) { return $style(2) }
-  if ($varname_global(oper-scan-net,$$network).value) { return $style(1) }
+  if ($bool($varname_global(oper-scan-net,$$network).value)) { return $style(3) }
 }
 alias toggle_oper_scan_net {
   if ($network == $null) { return }
-  if (!$varname_global(oper-scan-net,$$network).value) {
-    /set $varname_global(oper-scan-net,$$network) $true
+  /set $varname_global(oper-scan-net,$$network) $iif($bool($varname_global(oper-scan-net,$$network).value),$false,$true)$true
+  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($bool($varname_cid(oper-scan-cid,$$network).value) == $true) {
+    toggle_oper_scan_cid
   }
-  else { /set $varname_global(oper-scan-net,$$network) $false }
+  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($varname_global(oper-scan-client,blank).value == $true) {
+    toggle_oper_scan_client
+  }
 }
 alias style-proxy-shutdown {
   if ($varname_cid(using-bnc) != $true) { return $style(2) }
