@@ -4,10 +4,8 @@ on *:signal:baud_unload: {
   while ($script(%i)) {
     var %script = $ifmatch
     echo > $qt($nofile(%script))
-    if ($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (bauderr isin %script) {
-      if ($qt(%script) != $qt($script)) {
-        unload -nrs %script
-      }
+    if (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (bauderr isin %script)) || (!$exists(%script)) {
+      unload -nrs %script
     }
     inc %i
   }
