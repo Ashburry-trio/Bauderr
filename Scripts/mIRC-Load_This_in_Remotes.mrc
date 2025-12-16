@@ -3,8 +3,7 @@ on *:signal:baud_unload: {
   var %i = 1
   while ($script(%i)) {
     var %script = $ifmatch
-    echo > $qt($nofile(%script))
-    if (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (bauderr isin %script)) || (!$exists(%script)) {
+    if (%script != $script) && (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (bauderr isin %script)) || (!$exists(%script)) {
       unload -nrs %script
     }
     inc %i
@@ -43,8 +42,12 @@ alias baud_load_all {
     /load -rv $qt($scriptdirbauderr\users_vars\mIRC\ $+ %fn)  
   }
   Pync_set_app
-  sreq +m
-  creq -m
+  if (!%sreq ) {
+    sreq +m
+  }
+  if (!%creq ) {
+    creq -m
+  }
 }
 alias creq {
   if ($2 == auto) {
@@ -65,4 +68,5 @@ alias -l Pync_set_app {
   if (mirc isin $mircexe) { set %Pync_app mIRC }
   if ($version < 7.0) { set %Pync_app Adiirc }
   if ($version > 7.0) { set %Pync_app mIRC }
+  background -mf $scriptdirBauderr\images\background.jpg
 }

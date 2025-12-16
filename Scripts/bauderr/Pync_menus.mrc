@@ -682,16 +682,17 @@ alias /proxy-shutdown {
 ; chanserv exists:
 ;-
 alias identify_here_popup {
-  if ($bool_using_proxy != $true) { return }
-  if ($varname_global(can-identify-chanserv,$+($$chan,-,$$network)).value != $null) { return identify here }
+  if ($bool_using_proxy != $true) || (!$chan) { return $style(2) i&dentify here }
+  if ($varname_cid(can-identify-chanserv,$+($$chan,-,$$network)).value != $null) { return i&dentify here }
 }
 ;-
 alias identify_chans_popup {
   if ($1 == begin) || ($1 == end) { return }
-  var %chan = $var($varname_global(can-identify-chanserv,$+(*,-,$$network)),$1)
+  var %chan = $var($varname_cid(can-identify-chanserv,$+(*,-,$$network)),$1)
   %chan = [ [ %chan ] ]
   if (%chan == $null) && ($1 == 1) { return no channels : eecho -sep You have no channels with logged passwords }
-  return %chan : /bnc_msg identify-chanserv %chan
+  var %isid $varname_cid(isid-chanserv,$+(%chan,-,$$network))
+  return $iif((%isid == $true),$style(2)) %chan : /bnc_msg identify %chan
 }
 on *:quit: {
   if ($nick == $me) { unset $varname_cid(trio_ircproxy.py,active) }
@@ -710,21 +711,11 @@ on *:text:*:$chr(42) $+ status: {
   if ($4 != $null) && (*your username is ???* iswm $1-4) { set $varname_cid(trio-ircproxy.py, is_user) $4 }
   if (say-away == $1) && ($2 isin $true$false) { set $varname_glob(say-away,none) $2 }
   if (operscan-join == $1) && ($2 isin $true$false) { set $varname_cid(operscan-join,none) $2 }
+  ; sets below when able to log in, password is on proxy server
   if ($1 == can-identify-chanserv) && (#* iswm $$2) { set $varname_cid(can-identify-chanserv,$+($2,-,$network)) $2 }
+  ; sets $varname_cid(isid-identify-chanserv,$+($chan,-,$$network)) $true when logged in
   if ($1 == can-identify-nick) && ($$2) { set $varname_cid(can-identify-nick,$+($2,$$network)) $2 }
 
-}
-alias popup-identify-founder-list {
-  if ($bool_using_proxy == $false) {  return $style(2) identify as &founder  }
-  var %chan = $var($varname_global(can-identify-chanserv,$+(*,-,$$network)),1)
-  var %chan = [ [ %chan ] ]
-  if (%chan) { 
-    if (!$varname_cid(identified-founder,%chan)) {
-    return identify as &founder }
-  }
-  else {
-    retrun $style(2) identify as &founder
-  }
 }
 alias true$false {
   return $true $+ $false
