@@ -9,16 +9,19 @@ you are using a terminal client you may find it easier to use a web-browser to
 interact with the mSL script settings which is actually the proxy-server settings
 for that connection. You will have to login with username\@client_name for your
 username in your proxy-settings of your IRC client. Sign-in to
-[https://wwww.MyProxyIP.com/login](https://wwww.MyProxyIP.com/login.html) to see
+<https://wwww.MyProxyIP.com/login.html> to see
 your available proxy servers that work with your username and password. Follow
-the instructions on <https://wwww.MyProxyIP.com/proxy> if you use `mIRC` or
+the instructions on <https://wwww.MyProxyIP.com/proxy/> if you use `mIRC` or
 `Adiirc` clients. If you are going to open the script more than once; then
 copy/paste the `Bauderr` folder to a second new folder name, such as
 `Bauderr-copy2` so that you are not running the same script-files more than
 once. The only script files which may not be used more than once is the variables 
 script file. So instead of creating a second script folder you can just create a second 
 variables file and load that in one client, and the original variable file in your 
-first client. Set your background of the far-far background to the image in
+first client. You will also require a second mirc.ini to save the loaded script files
+in; since you have changed the variables file in your mirc.ini file. Just create a shortcut
+and specify the new mirc-copy.ini file. Type `/help command line` in mIRC/Adiirc to see
+how to do that Set your background of the far-far background to the image in
 `Bauderr\Scripts\bauderr\images\background.jpg`and image-setting to “`normal`” seems
 to work best for me.
 
