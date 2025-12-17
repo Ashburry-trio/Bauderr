@@ -1,5 +1,3 @@
-; * Break: command halted (line 91, Pync_no-category.mrc)
-; Low on RAM script cannot run!! Maybe missing a opening or closing parentehsis  ()
 on *:start: {
   bde_start
 }
