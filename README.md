@@ -1,44 +1,47 @@
-Machine-Gun/Bauderr
+PyNet Converge/Bauderr
 ===================
 
-Machine-Gun script named [Bauderr](https://ashburry.pythonanywhere.com) for [mIRC
-](https://www.mirc.com/get.html)and [Adiirc](https://adiirc.com/download.php)
+PyNet Converge script named [Bauderr](https://wwww.MyProxyIP.com) for [mIRC
+](https://www.mirc.com/get.html) and [Adiirc](https://adiirc.com/download.php)
 clients. Internet Relay Chat script networked with
-[ashburry.pythonanywhere.com](https://ashburry.pythonanywhere.com/) account and proxy-servers. if
+[wwww.MyProxyIP.com](https://wwww.MyProxyIP.com/) account and proxy-servers. If
 you are using a terminal client you may find it easier to use a web-browser to
-interact with the client settings which is actually the proxy-server settings
-for that client. You will have to login with username\@client_name for your
-username in your proxy-settings of your IRC client. sign-in to
-[https://ashburry.pythonanywhere.com/login](https://ashburry.pythonanywhere.com/login.html) to see
+interact with the mSL script settings which is actually the proxy-server settings
+for that connection. You will have to login with username\@client_name for your
+username in your proxy-settings of your IRC client. Sign-in to
+[https://wwww.MyProxyIP.com/login](https://wwww.MyProxyIP.com/login.html) to see
 your available proxy servers that work with your username and password. Follow
-the instructions on <https://ashburry.pythonanywhere.com/proxy> if you use `mIRC` or
-`Adiirc` clients. if you are going to open the script more than once; then
-copy/paste the `Machine-Gun` folder to a new folder name, such as
-`Machine-Gun-copy2` so that you are not running the same script-files more than
-once. set your background of the far-far background to the image in
-`.\Scripts\bauderr\images\background.jpg`and image-setting to “`normal`” seems
+the instructions on <https://wwww.MyProxyIP.com/proxy> if you use `mIRC` or
+`Adiirc` clients. If you are going to open the script more than once; then
+copy/paste the `Bauderr` folder to a second new folder name, such as
+`Bauderr-copy2` so that you are not running the same script-files more than
+once. The only script files which may not be used more than once is the variables 
+script file. So instead of creating a second script folder you can just create a second 
+variables file and load that in one client, and the original variable file in your 
+first client. Set your background of the far-far background to the image in
+`Bauderr\Scripts\bauderr\images\background.jpg`and image-setting to “`normal`” seems
 to work best for me.
 
  
 
-Bauderr\@Client_Name
+UserName\@Client_Name
 --------------------
 
-when you sign-in to a IRC server, with the proxy-server credentials found at
-<https://ashburry.pythonanywhere.com/proxy>, then the popup menus will unlock on servers
-you are connected to via proxy-server. your session will resume on the network
-if you have connected to it before. use `/msg *status ActiveChans` to view all
-client-names, networks, and joined rooms you are in, `*status` will also shows
-rooms you have detached. active network is in bold text. use `/msg *status
+When you sign-in to a IRC server, with the proxy-server credentials found at
+<https://wwww.MyProxyIP.comm/proxy>, then the popup menus will unlock on servers
+you are connected to via proxy-server. Your IRC session will resume on the network
+if you have connected to it before. Use `/msg *Status ActiveChans` to view all
+client-names, networks, and joined rooms you are in, `*Status` will also shows
+rooms you have detached. Active network is in bold text. Use `/msg *Status
 ClientNames` to view client-names/UserName and networks and nicknames of all
-proxy-server connections. set your client-name in your proxy-server settings as
-part of your username. `UserName@any_imaginary_client_name` (notice the \@ sign)
-you may put any alphabetic letters and underscores and hyphens (not two in a row
-and must contain at-least 3 letters from `a-Z` and/or `digits`). there is a
-maximum 18 letters for client name and 15 letters for UserName. Client-name is
-optional and only useful if you use more than one client or use one client more
-than once.
-
- 
+proxy-server connections that use a client name. Set your client-name in your
+proxy-server settings as part of your username. `UserName@any_imaginary_client_name` 
+(notice the \@ sign) you may put any alphabetic letters and underscores and hyphens 
+(not two underscore/hyphen in a row and must contain at-least 3 letters from `a-Z` 
+and/or `digits`). There is a maximum 10 letters for client name and 15 letters for 
+UserName. Client-name is optional and only useful if you use more than one client or 
+use one client more than once. A dcc chat to *Status must be initiated if you connect 
+with a client name. This will allow messages destined to each client instead of each 
+server connection.
 
 o   End of Document.
