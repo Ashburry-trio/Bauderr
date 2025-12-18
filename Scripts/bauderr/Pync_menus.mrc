@@ -13,7 +13,7 @@ on *:quit: {
   unset %bde_cid_*
 }
 on *:connect: {
-  if ($bool($varname_cid(oper-scan-cid,$network).value))
+  pass
 }
 alias ascii-art-select {
   var %fn = $scriptdirart\ascii-art\
