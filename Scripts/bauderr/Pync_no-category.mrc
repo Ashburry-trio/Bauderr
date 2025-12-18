@@ -24,7 +24,7 @@ on *:connect: {
   autojoin
 }
 alias bool {
-  if ($1 == enabled) || ($1 == enable) || (($1 isnum) && ($1 > 0)) || ($1 == true) || ($1 == $true) || ($1 == on) { return $true }
+  if ($1 isin $true True on 1 enabled active) { return $true }
   else { return $false }
 }
 on *:quit: {
@@ -146,8 +146,8 @@ alias varname_cid {
 }
 alias varname_network {
   if (!$0) || (!$isid) || ($fromeditbox) { return }
-  var %varname = $+(%,bde_net_,$1,!,$iif(($2 == $null),blank,$2),$chr(35),$network)
-  if ($prop == value) { return [ [ %varname) ] ] }
+  var %varname = $+(%,bde_net_,$1,!,$iif(($2 == $null),blank,$2),$chr(35),$$network)
+  if ($prop == value) { return [ [ %varname ] ] }
   return %varname
 }
 alias varname_global {
