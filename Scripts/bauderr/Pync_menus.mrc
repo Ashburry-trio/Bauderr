@@ -427,25 +427,20 @@ menu Status,Channel {
   .-
   .$iif(($status != connected),$style(2)) [motd] 
   ..$chr($asc([)) $+ $server $+ $chr($asc(])) : motd
-  ..www.myProxyIP.com : msl_motd
+  ..MyProxyIP.com : msg *status show-motd mypyip
   ..-
   ..on connect
-  ...show www.myproxyip.com : msl show-motd www.MyProxyIP.com.com
-  ...show irc server : msl show-motd
+  ...$iif($proxy_style,$ifmatch,$iif($varname_global(on-connect,show-motd).value == mypyip,$style(1))) [show MyProxyIP.com] : msg *status on-connect show-motd mypyip
+  ...$iif($proxy_style,$ifmatch,$iif($varname_global(on-connect,show-motd).value != mypyip,$style(1))) show irc server : msg *status on-connect show-motd
   .-
   .whois query
   ..$submenu($query_menu($1))
-  .[ial-fill]
-  ..$submenu($ialupdate_menu($1))
-  ..-
-  ..room : if ($ial) { ialfill -f $$input(Type a room:,eoygbqk60,type a room,#5ioE) }
-  ..$iif((!$ial),$style(1)) turn OFF ial : ial $$iif((!$ial),on,off)
   .-
   .lusers : lusers
   .links : links
-  .[list room] : list
+  .[list rooms] : list
   .-
-  .quit : quit * Trio-ircproxy.py & MG script named Bauderr *
+  .quit : quit : :: Trio-ircproxy.py & PyNet Converge script named Bauderr : .  
   -
   script &functions
   .$iif($bool($varname_cid(anti-idle,enabled).value) == $true,$style(1)) set ant&i-idle : {
@@ -495,6 +490,15 @@ menu Status,Channel {
   ...$submenu($play-sound-history($1))
   ...[select file] : play-sound $iif($active == $chan || $active == $nick,$ifmatch,$gettok($$?="enter a room or nickname to play to:",1,32)) $qw($sfile($sound($INPUT(Select a sound folder source:,ygbqdum,select a sound folder source,$active,mp3,midi,ogg,wma,wave)),*.mp3;*.ogg;*.wma;*.mid;*.wav),Select a sound file:, Play))
   &room functions
+  .[sticky part]
+  ..$style_sticky_menu [turn on] : msg *status sticky-part $iif(($bool($varname_cid(sticky-part).value) == $true),off,on)
+  ..info : var %msg = *** Sticky part means when you part a channel in your client you still remain on the channel however channel activity is hidden from you | if ($active != Status Window) { echo $color(status) -a %msg } | echo $color(status) -s %msg
+  .[ial-fill]
+  ..$submenu($ialupdate_menu($1))
+  ..-
+  ..room ? : if ($ial) { ialfill -f $$input(Type a room:,eoygbqk60,type a room,#5ioE) }
+  ..$iif((!$ial),$style(1)) turn off IAL : ial $$iif((!$ial),on,off)
+  .-
   .$iif(($active == Status Window),$style(2)) topi&c history
   ..$iif($is_topic(1),$style(1)) $topic_history_pops(1)
   ...&set this topic : /editbox /topic $chan $topic_history_pops(1).topic
@@ -645,6 +649,9 @@ menu Status,Channel {
   ..192.168.0.17 +6697 : /proxy off | /server 192.168.0.17:+6697 $$?="enter your proxy username and optional @client_name:" $+ / $+ $$?="enter network name to connect to:") $+ : $+ $$?="enter your proxy password:"
   .-
   .without proxy or vhost : /proxy off | /server $server(1, $iif(($network),$network,$$?="enter network name:"))
+}
+alias style_sticky_menu {
+  return $iif($style_proxy,$ifmatch,$iif(($bool($varname_cid(sticky-part).value) == $true),$style(1)))
 }
 alias style_link_on {
   if (!$chan) { return $style(2) }

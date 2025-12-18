@@ -8,7 +8,7 @@ alias bde_start {
   !.sound on
   !.menubar on
   !.treebar on
-  !.dcc packetsize 65535
+  !.dcc packetsize 16384
   !.pdcc on
   !.dcc maxcps $calc(1024 * 1024 * 12)
   .speak -lu Greetings
