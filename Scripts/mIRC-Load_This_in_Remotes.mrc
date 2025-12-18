@@ -5,6 +5,7 @@ on *:signal:baud_unload: {
     var %script = $ifmatch
     if (%script != $script) && (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (bauderr isin %script)) || (!$exists(%script)) {
       unload -nrs %script
+      continue
     }
     inc %i
   }
