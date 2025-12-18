@@ -296,7 +296,7 @@ menu Status,Channel {
   ..$advertise-user : bnc_msg advertise-username-with-bauderr
   ..everywhere possible : bnc_msg --advertise-everywhere-with-bauderr
   -
-  &client commands
+  &client cmnds
   .[auto-join invite]
   ..off : ajinvite off
   ..[on] : ajinvite on
@@ -413,7 +413,7 @@ menu Status,Channel {
   .exit : exit
   .-
   .reset idle $block($duration($idle)) : /resetidle $?="enter number of seconds:"
-  &server commands
+  &server cmnds
   .part room
   ..$submenu($menu_parted($1))
   ..-
@@ -616,7 +616,7 @@ menu Status,Channel {
   .-
   .$style_auto_ial [&auto update IAL] : toggle_auto_ial
   -
-  $style_proxy network services
+  $style_proxy &network services
   .$iif($bool($varname_network(auto-identify-room,$active).value) == $true,$style(1),$iif($active !ischan,$style(2))) [&auto-identify room] : msg *Status auto-identify-room $iif($bool($varname_cid(auto-identify-room,$active).value) == $true,remove,add) $active
   .$iif($bool($varname_network(auto-identify-nick,$me).value) == $true,$style(1),$style_proxy) [&auto-identify nick] : msg *status auto-identify-nick $iif($bool($varname_cid(auto-identify-nick,$me).value) == $true,remove,add) $me
   .-
