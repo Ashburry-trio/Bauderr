@@ -2,7 +2,7 @@ on *:start: {
   bde_start
 }
 alias bde_start {
-  !.bigfloat off
+  if (adiirc !isin $mircexe) { !.bigfloat off }
   :adiirc
   !.switchbar off
   !.sound on

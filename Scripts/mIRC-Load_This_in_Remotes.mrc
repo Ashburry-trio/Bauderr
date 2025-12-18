@@ -34,8 +34,8 @@ alias baud_load_all {
   var %fn = Pync_Users-for- $+ %Pync_app $+ .mrc
   var %fn = Pync_Vars-for- $+ %Pync_app $+ .mrc
   if (%Pync_app == adiirc) {
-    /load -ru $qt($scriptdirbauderrusers_vars\Adiirc\ $+ %fn)
-    /load -rv $qt($scriptdirbauderrusers_vars\Adiirc\ $+ %fn)
+    /load -ru $qt($scriptdirbauderr\users_vars\Adiirc\ $+ %fn)
+    /load -rv $qt($scriptdirbauderr\users_vars\Adiirc\ $+ %fn)
   }
   else {
     /load -ru $qt($scriptdirbauderr\users_vars\mIRC\ $+ %fn)
