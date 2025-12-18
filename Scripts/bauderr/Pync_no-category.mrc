@@ -2,7 +2,6 @@ on *:start: {
   bde_start
 }
 alias bde_start {
-  # create_shortcuts_both
   !.bigfloat off
   :adiirc
   !.switchbar off
