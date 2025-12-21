@@ -492,7 +492,7 @@ menu Status,Channel {
   &room functions
   .[sticky part]
   ..$style_sticky_menu [turn on] : msg *status sticky-part $iif(($bool($varname_cid(sticky-part).value) == $true),off,on)
-  ..info : var %msg = *** Sticky part means when you part a channel in your client you still remain on the channel however channel activity is hidden from you | if ($active != Status Window) { echo $color(status) -a %msg } | echo $color(status) -s %msg
+  ..info : var %msg = *** Sticky part means when you part a channel in your client you still remain on the channel however channel activity is hidden from you | if ($active != Status Window) { echo $color(info) -a %msg } | echo $color(info) -s %msg
   .[ial-fill]
   ..$submenu($ialupdate_menu($1))
   ..-
@@ -1145,13 +1145,13 @@ alias create_shortcuts_style {
 }
 alias create_shortcuts_mirc {
   run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) b -i $qt($mircini)
-  echo $color(status) -s *** Created shortcut in folder $qt($nofile($mircini))
+  echo $color(info) -s *** Created shortcut in folder $qt($nofile($mircini))
 }
 alias create_shortcuts_desktop {
   run -a $qt(python $scriptdir..\create_shortcut.py) $qt($mircexe) d -i $qt($mircini)
-  echo $color(status) -s *** Creating shortcut on the Desktop
+  echo $color(info) -s *** Creating shortcut on the Desktop
 }
 alias create_shortcuts_both {
   run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) bd -i $qt($mircini)
-  echo $color(status) -s *** Creating shortcut on Desktop and in folder $qt($nofile($mircini))
+  echo $color(info) -s *** Creating shortcut on Desktop and in folder $qt($nofile($mircini))
 }

@@ -72,3 +72,4 @@ alias -l Pync_set_app {
   if ($version > 7.0) { set %Pync_app mIRC }
   background -mf $scriptdirBauderr\images\background.jpg
 }
+
