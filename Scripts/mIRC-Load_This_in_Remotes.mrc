@@ -1,9 +1,10 @@
+
 on *:signal:baud_unload: {
   Pync_set_app
   var %i = 1
   while ($script(%i)) {
     var %script = $ifmatch
-    if (%script != $script) && (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (bauderr isin %script)) || (!$exists(%script)) {
+    if (%script != $script) && (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (baFESTuderr isin %script)) || (!$exists(%script)) {
       unload -nrs %script
       continue
     }

@@ -1,4 +1,8 @@
-.: Welcome to a unqiue (Bauderr) Fserve :: :
+.: Welcome to a (Bauderr) F-serve :: :
 .: -
-.: This File-Server is not free for me to host; pls be respectful :: :
-.: ofc you may enjoy your free access here at no cost :: :
+.: Please, do not upload any files! :: :
+.: Enjoy free access with unlimited downloads :: :
+.: Be respectful; do not take advantage of this free access :: :
+-
+-- For quick down/up transfers, use the following commands: -
+-- /pdcc on - /dcc packetsize 16384 - /fsend on
