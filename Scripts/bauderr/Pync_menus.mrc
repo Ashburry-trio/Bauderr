@@ -788,41 +788,41 @@ alias style_allow_room_name {
   if ($varname_global(allow_room_name,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_nick {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_nick,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_room_name_on {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if (!$varname_global(allow_room_name,$network $+ $chan).value) { return $style(1) }
 }
 
 alias style_allow_binart {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_binart,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_bad_word {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_bad_word,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_bad_word_off {
-  if (!$$network) || (!$$chan) { return }
+  if (!$network) || (!$chan) { return }
   if (!$varname_global(allow_bad_word,$network $+ $chan).value) { return $style(1) }
 
 }
 alias style_allow_idle {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_idle,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_share {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_sharing,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_clone {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_clone,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_rand_nick {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_rand_nick,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_long_word {
@@ -830,23 +830,23 @@ alias style_allow_long_word {
   if ($varname_global(allow_long_word,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_line {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_long_line,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_paste {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_paste,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_non_default {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_room_non_default,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_rand_text {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_rand_text,$network $+ $chan).value) { return $style(1) }
 }
 alias style_allow_ascii {
-  if (!$$network) || (!$$chan) { return $style(2) }
+  if (!$network) || (!$chan) { return $style(2) }
   if ($varname_global(allow_rand_text,$network $+ $chan).value) && $&
     ($varname_global(allow_room_paste,$network $+ $chan).value) && $&
     ($varname_global(allow_long_line,$network $+ $chan).value) && $&
