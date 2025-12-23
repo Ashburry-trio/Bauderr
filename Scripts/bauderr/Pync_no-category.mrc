@@ -23,7 +23,8 @@ on *:connect: {
   autojoin
 }
 alias bool {
-  if ($1 isin $true True on 1 enabled active) { return $true }
+  if (!$1) { return $false }
+  if ($istok($true True on 1 enabled active T,$1,32)) { return $true }
   else { return $false }
 }
 on *:quit: {

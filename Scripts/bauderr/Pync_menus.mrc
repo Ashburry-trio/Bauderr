@@ -1,12 +1,10 @@
 on *:start: {
   unset %bde_cid_*
   unset %bde_temp_*
-  unset %bde_global_*
 }
 on *:exit: {
   unset %bde_cid_*
   unset %bde_temp_*
-  unset %bde_global_*
 }
 on *:quit: {
   if ($nick != $me) { return }
@@ -490,16 +488,16 @@ menu Status,Channel {
   ...$submenu($play-sound-history($1))
   ...[select file] : play-sound $iif($active == $chan || $active == $nick,$ifmatch,$gettok($$?="enter a room or nickname to play to:",1,32)) $qw($sfile($sound($INPUT(Select a sound folder source:,ygbqdum,select a sound folder source,$active,mp3,midi,ogg,wma,wave)),*.mp3;*.ogg;*.wma;*.mid;*.wav),Select a sound file:, Play))
   &room functions
-  .[sticky part]
+  .[&sticky part]
   ..$style_sticky_menu [turn on] : msg *status sticky-part $iif(($bool($varname_cid(sticky-part).value) == $true),off,on)
-  ..info : var %msg = *** Sticky part means when you part a channel in your client you still remain on the channel however channel activity is hidden from you | if ($active != Status Window) { echo $color(info) -a %msg } | echo $color(info) -s %msg
+  ..info : var %msg = * Sticky part means when you part a channel in your client you still remain on the channel however, channel activity is hidden from you | if ($active != Status Window) { echo $color(info) -ae %msg } | echo $color(info) -s %msg
   .[ial-fill]
   ..$submenu($ialupdate_menu($1))
   ..-
-  ..room ? : if ($ial) { ialfill -f $$input(Type a room:,eoygbqk60,type a room,#5ioE) }
-  ..$iif((!$ial),$style(1)) turn off IAL : ial $$iif((!$ial),on,off)
+  ..$iif((!$ial),$style(2)) room ? : if ($ial) { ialfill -f $$input(Type a room:,eoygbqk60,type a room,#5ioE) }
+  ..$iif(($ial),$style(1)) turn on IAL : ial $$iif((!$ial),on,off)
   .-
-  .$iif(($active == Status Window),$style(2)) topi&c history
+  .$style_topic_history_on &topi&c history
   ..$iif($is_topic(1),$style(1)) $topic_history_pops(1)
   ...&set this topic : /editbox /topic $chan $topic_history_pops(1).topic
   ...-
@@ -546,12 +544,12 @@ menu Status,Channel {
   ...&remove from history : topic_history_remove 10
   ..-
   ..$style_add_topic_history &add this topic to history : topic $chan
-  ..$iif(($chan(#).topic == $null),$style(3)) &unset topic : /raw topic $chan :
+  ..$iif(!#$chan,$style(2),iif(($chan(#).topic == $null),$style(3))) &unset topic : /raw topic $chan :
   ..-
-  ..$iif(($eval($var($varname_global(topic_history_ $+ $chan,*),1),1) == $null || (!$chan)),$style(3)) erase topic history for room : unset $varname_global(topic_history_ $+ $chan,*) | eecho -sep topic history cleared for room $chan
+  ..$iif((!#$chan),$style(2),$iif(($eval($var($varname_global(topics_history_ $+ $chan,*),1),1) == $null),$style(3))) erase topic history for room : unset $varname_global(topics_history_ $+ $chan,*) | eecho -sep topic history cleared for room $chan
   ..$iif(($var($varname_global(topic_history_*,*),0) == 0),$style(3)) erase entire topic history : unset $varname_global(topic_history_*,*) | eecho -sep topic history for ALL channels is cleared
   ..-
-  ..$style_topic_history_on switch ON topic history : topic_history_switch_on
+  ..$style_topic_history_off switch off topic history : topic_history_switch_on
   .-
   .[&allow prevention]
   ..$style_allow_ascii &allow ascii-art
@@ -594,16 +592,16 @@ menu Status,Channel {
   ..$style_allow_default [set defaults to allow] : set_allow_room_default
   .[ir&c oper scan]
   ..-
-  ..$iif(($chan != $null),$style_proxy,$style(2)) scan here : /operscan $chan
-  ..$iif(($chan(0) > 0),$style_proxy,$style(2)) scan all rooms : /operscan
+  ..$iif(($chan != $null),$style_proxy,$style(2)) &scan here : /operscan $chan
+  ..$iif(($chan(0) > 0),$style_proxy,$style(2)) &scan all rooms : /operscan
   ..-
-  ..$iif($menu_disable_oper_scan != $style(3),$style(1)) s&can on join
-  ...$menu_disable_oper_scan switch OFF scanning : disable_oper_scan
+  ..$iif($menu_disable_oper_scan != $style(3),$style(1)) &scan on join
+  ...$menu_disable_oper_scan switch &OFF scanning : disable_oper_scan
   ...-  
-  ...$oper_scan_net switch ON for this network : toggle_oper_scan_net
-  ...$oper_scan_cid switch ON for this connection (temporary) : toggle_oper_scan_cid
+  ...$style_oper_scan_net switch ON for this &network : toggle_oper_scan_net
+  ...$style_oper_scan_cid switch ON for this &connection (temporary) : toggle_oper_scan_cid
   ...-
-  ...$oper_scan_client [switch ON for this @client_id] : toggle_oper_scan_client
+  ...$style_oper_scan_client [switch ON for this @&client_id] : toggle_oper_scan_client
   .-
   .$style_net_chan_link network channel link 
   ..$style_link_on turn on here : {
@@ -612,8 +610,9 @@ menu Status,Channel {
   }
   ..-
   ..in&fo : /script_info -chan_link
-  .$style_annc_urls describe .url
-
+  .$style_annc_urls_on describe .url
+  ..$style_secure_url enforce secure connections : urlcrawl_secure_toggle
+  ..$style_annc_urls_off turn off url crawl : urlcrawl_toggle
   .-
   .$style_auto_ial [&auto update IAL] : toggle_auto_ial
   -
@@ -652,7 +651,7 @@ menu Status,Channel {
   .without proxy or vhost : /proxy off | /server $server(1, $iif(($network),$network,$$?="enter network name:"))
 }
 alias style_sticky_menu {
-  return $iif($style_proxy,$ifmatch,$iif(($bool($varname_cid(sticky-part).value) == $true),$style(1)))
+  return $iif($style_proxy,$iif(($bool($varname_network(sticky-part).value) == $true),$style(3),$style(2)),$iif(($bool($varname_network(sticky-part).value) == $true),$style(2)))
 }
 alias style_link_on {
   if (!$chan) { return $style(2) }
@@ -670,11 +669,21 @@ alias style_auto_ial {
 alias toggle_auto_ial {
   set $varname_global(auto_ia1,blank) $iif($1 != $null,$1,$iif(($varname_global(auto_ia1,blank).value == $true || $varname_global(auto_ia1,blank).value == $null),$false,$true))
 }
-alias style_annc_urls {
-  return $iif(($varname_cid(annc_urls,blank).value),$style(1))
+alias style_annc_urls_on {
+  return $iif(($varname_cid(urlcrawl,enabled).value),$style(1))
 }
-alias annc_urls_toggle {
-  set $varname_cid(annc_urls,blank) $iif(($varname_cid(annc_urls,blank).value),$false,$true)
+alias style_annc_urls_off {
+  return $iif((!$varname_cid(urlcrawl,enabled).value),$style(1))
+}
+alias style_secure_url {
+  if ($varname_global(urlcrawl,secure).value == $null) || ($bool($varname_global(urlcrawl,secure).value) == $true) { return $style(1) }
+}
+alias urlcrawl_secure_toggle {
+  set $varname_global(urlcrawl,secure) $iif($style_secure_url,$false,$true)
+
+}
+alias urlcrawl_toggle {
+  set $varname_cid(urlcrawl,enabled) $iif(($varname_cid(urlcrawl,enabled).value),$false,$true)
 }
 alias query_menu {
   if ($1 isin beginend) { return }
@@ -695,9 +704,7 @@ alias play-sound-history {
   if (!$exists(%fn)) { unset $var(%fn,1) | continue }
   return $nopath(%fn) : play-sound $eval($iif($active == $chan || $active == $nick,$ifmatch,$gettok($$?="enter a room or nickname to play to:",1,32)) %fn, 0)
 }
-alias style_annc_urls_secure {
-  if ($varname_global(urlcrawl,secure) == $null) || ($varname_global(urlcrawl,secure) == $true) { return $style(1) }
-}
+
 alias play-sound {
   var %file = $qw($2-), %fn
   if (!$exists(%file)) { return }
@@ -1009,52 +1016,40 @@ alias set_allow_room_name {
   if ($varname_global(allow_room_name,$network $+ $chan).value) { set $varname_global(allow_room_default,$network $+ $chan) $true }
 }
 alias menu_disable_oper_scan {
-  if (!$bool($varname_cid(oper-scan-cid,$network).value)) && (!$bool($varname_global(oper-scan-net,$$network).value)) && (!$bool($varname_global(oper-scan-client).value)) { return $style(3) }
+  if (!$bool($varname_cid(oper-scan-cid).value)) && (!$bool($varname_network(oper-scan-net).value)) && (!$bool($varname_global(oper-scan-client).value)) { return $style(3) }
 
 }
-alias oper_scan_client {
+alias style_oper_scan_client {
   if ($varname_global(oper-scan-client,blank).value == $true) { return $style(3) }
 }
 alias toggle_oper_scan_client {
-  set $varname_global(oper-scan-client,blank) $iif($bool($varname_global(oper-scan-client,blank).value) == $true,$false,$true)
-  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($bool($varname_cid(oper-scan-client).value) == $true) {
-    toggle_oper_scan_net
-  }
-  if ($bool($varname_global(oper-scan-client).value) == $true) && ($varname_cid(oper-scan-cid).value == $true) {
-    toggle_oper_scan_cid
-  }
+  set $varname_global(oper-scan-client,blank) $true
+  unset $varname_network(oper-scan-net)
+  unset $varname_cid(oper-scan-cid)
 }
 alias disable_oper_scan {
-  set $varname_cid(oper-scan-cid) $false
-  if ($network) { set $varname_global(oper-scan-net,$$network) $false }
-  set $varname_global(oper-scan-client,blank) $false
+  unset $varname_cid(oper-scan-cid)
+  unset $varname_network(oper-scan-net)
+  unset $varname_global(oper-scan-client,blank)
 }
-alias oper_scan_cid {
-  if ($bool($varname_cid(oper-scan-cid,$$network).value)) { return $style(3) }
+alias style_oper_scan_cid {
+  if ($bool($varname_cid(oper-scan-cid).value)) { return $style(3) }
 }
 alias toggle_oper_scan_cid {
-  set $varname_cid(oper-scan-cid,$$network) $iif($bool($varname_cid(oper-scan-cid,$$network).value),$false,$true)
-  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($bool($varname_cid(oper-scan-cid,$$network).value) == $true) {
-    toggle_oper_scan_net
-  }
-  if ($bool($varname_cid(oper-scan-cid,$$network).value) == $true) && ($bool($varname_global(oper-scan-client).value) == $true) {
-    toggle_oper_scan_client
-  }
+  set $varname_cid(oper-scan-cid) $true
+  unset $varname_network(oper-scan-net)
+  unset $varname_global(oper-scan-client,blank)
 }
 
-alias oper_scan_net {
+alias style_oper_scan_net {
   if ($network == $null) { return $style(2) }
-  if ($bool($varname_global(oper-scan-net,$$network).value)) { return $style(3) }
+  if ($bool($varname_network(oper-scan-net).value)) { return $style(3) }
 }
 alias toggle_oper_scan_net {
   if ($network == $null) { return }
-  /set $varname_global(oper-scan-net,$$network) $iif($bool($varname_global(oper-scan-net,$$network).value),$false,$true)$true
-  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($bool($varname_cid(oper-scan-cid,$$network).value) == $true) {
-    toggle_oper_scan_cid
-  }
-  if ($bool($varname_global(oper-scan-net,$$network).value) == $true) && ($varname_global(oper-scan-client,blank).value == $true) {
-    toggle_oper_scan_client
-  }
+  set $varname_network(oper-scan-net) $true
+  unset $varname_cid(oper-scan-cid)
+  unset $varname_global(oper-scan-client,blank)
 }
 alias style-proxy-shutdown {
   if ($varname_cid(using-bnc) != $true) { return $style(2) }
@@ -1084,7 +1079,7 @@ on *:quit: {
 }
 
 alias bool_using_proxy {
-  if ($bool($varname_cid(trio-ircproxy.py,active).value) = $true) { return $true }
+  if ($bool($varname_cid(trio-ircproxy.py,active).value) == $true) { return $true }
   return $false
 }
 alias style_proxy {
@@ -1144,14 +1139,17 @@ alias create_shortcuts_style {
   if ($varname_cid(trio-ircproxy.py,active).value) { return $style(2) }
 }
 alias create_shortcuts_mirc {
-  run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) b -i $qt($mircini)
-  echo $color(info) -s *** Created shortcut in folder $qt($nofile($mircini))
+  var %ini = $qt($scriptdir..\..\mirc.ini)
+  run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) b -i $qt($%ini)
+  echo $color(info) -s *** Created shortcut in folder $qt($nofile(%ini))
 }
 alias create_shortcuts_desktop {
-  run -a $qt(python $scriptdir..\create_shortcut.py) $qt($mircexe) d -i $qt($mircini)
+  var %ini = $qt($scriptdir..\..\mirc.ini)
+  run -a $qt(python $scriptdir..\create_shortcut.py) $qt($mircexe) d -i $qt(%ini)
   echo $color(info) -s *** Creating shortcut on the Desktop
 }
 alias create_shortcuts_both {
-  run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) bd -i $qt($mircini)
+  var %ini = $qt($scriptdir..\..\mirc.ini)
+  run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) bd -i $qt(%ini)
   echo $color(info) -s *** Creating shortcut on Desktop and in folder $qt($nofile($mircini))
 }

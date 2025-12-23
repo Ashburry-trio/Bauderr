@@ -70,6 +70,6 @@ alias -l Pync_set_app {
   if (mirc isin $mircexe) { set %Pync_app mIRC }
   if ($version < 7.0) { set %Pync_app Adiirc }
   if ($version > 7.0) { set %Pync_app mIRC }
-  background -mf $scriptdirBauderr\images\background.jpg
+  background -mf $qt($scriptdirBauderr\images\background.jpg)
 }
 

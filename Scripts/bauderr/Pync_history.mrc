@@ -4,12 +4,12 @@ on *:load:exp_topics
 on *:connect:exp_topics
 alias style_add_topic_history {
   if ($chan($chan).topic == $null) { return $style(2) }
-  var %topic = $eval($var($varname_global(topic_history_ $+ $chan,*),1),2)
+  var %topic = $eval($var($varname_global(topics_history_ $+ $chan,*),1),2)
   var %i = 1
   while %topic {
-    if (%topic == $chan($chan).topic) { return $style(3) }
+    if (%topic === $chan($chan).topic) { return $style(3) }
     inc %i
-    %topic = $eval($var($varname_global(topic_history_ $+ $chan,*),%i),2)
+    %topic = $eval($var($varname_global(topics_history_ $+ $chan,*),%i),2)
   }
 }
 
@@ -18,11 +18,14 @@ alias is_topic {
   else { return $false }
 }
 
+alias style_topic_history_off {
+  if (!$bool($varname_global(topic_history_switch,on).value)) { return $style(1) }
+}
 alias style_topic_history_on {
-  if ($varname_global(topic_history_switch,on).value != $false) { return $style(1) }
+  if (!$style_topic_history_off) { return $style(1) }
 }
 alias topic_history_switch_on {
-  if ($varname_global(topic_history_switch,on).value != $false) { set $varname_global(topic_history_switch,on) $false | eecho topic history switched [OFF] }
+  if ($bool($varname_global(topic_history_switch,on).value)) { set $varname_global(topic_history_switch,on) $false | eecho topic history switched [OFF] }
   else { set $varname_global(topic_history_switch,on) $true | eecho topic history switched [ON] }
 
 }
@@ -33,13 +36,14 @@ alias exp_topics {
   inc %i
   set -ln %check2 $var($eval(%check,1),%i)
   if (%check2 == $null) { return }
-  if ($calc($ctime - $gettok(%check2,-1,35)) > $calc(60 * 60 * 24 * 21)) { unset $eval(%check2,1) | dec %i }
+  if ($gettok(%check2,-1,35) !isnum) { goto loop }
+  if ($calc($ctime - $gettok(%check2,-1,35)) >= $calc(60 * 60 * 24 * 21)) { unset $eval(%check2,1) | dec %i }
   goto loop
 }
 on *:topic:#: {
   if ($1 == $null) { return }
   var %i = 0
-  var %check = $varname_global(topic_history_ $+ #,*)
+  var %check = $varname_global(topics_history_ $+ #,*)
   var %varname
   :loop
   inc %i
@@ -49,19 +53,16 @@ on *:topic:#: {
   if ([ [ %varname ] ] === $1-) { return }
   goto loop
   :end
-  var %t = $+(topic_add-,$network,-,$chan)
-  if ($chan($chan).topic == $null) { .timer $+ %t off | return }
-  else { .timer $+ %t -oi 1 6 /topic_history_add $chan $replacex($1-,$chr(124),$chr(1)) }
+  else { topic_history_add $chan $replacex($1-,$chr(124),$chr(1)) }
 }
 raw 331:*: {
-  .timerTopic_TEMP_off 1 7 /unset $varname_global(topic_history_TEMP_switch,on)
+  /unset $varname_global(topic_history_TEMP_switch,on)
 }
 raw 332:*: {
-  var %t = $+(topic_add-,$network,-,$2)
-  .timer $+ %t -oi 1 6 /topic_history_add $2 $replacex($3-,$chr(124),$chr(1))
+  /topic_history_add $2 https://www.MyProxyIP.com
 }
 alias topic_history_remove {
-  unset $var($varname_global(topic_history_ $+ $$chan,*),$$1)
+  unset $var($varname_global(topics_history_ $+ $chan,*),$$1)
 }
 alias topic_history_add {
   var %chan = $1
@@ -70,12 +71,12 @@ alias topic_history_add {
   set $varname_global(topic_history_TEMP_switch,on) $false
   exp_topics
   if ($len(%chan) < 2) || ($left(%chan,1) != $chr(35)) { return }
-  if ($var($varname_global(topic_history_ $+ %chan,*),0) >= 10) { remove_oldest_topic %chan }
+  if ($var($varname_global(topics_history_ $+ %chan,*),0) >= 10) { remove_oldest_topic %chan }
   set -ln %topic $strip($2-)
   set -ln %topic_32 $remove(%topic,$chr(32))
   if (%topic_32 == $null) { return }
   var %i = 0
-  var %check = $varname_global(topic_history_ $+ %chan,*)
+  var %check = $varname_global(topics_history_ $+ %chan,*)
   var %varname
   :loop
   inc %i
@@ -85,7 +86,7 @@ alias topic_history_add {
   if ([ [ %varname ] ] === $replacex($1-,$chr(1),$chr(124))) { return }
   goto loop
   :end
-  set -n $eval($varname_global(topic_history_ $+ %chan,$ctime)) $replacex($1-,$chr(1),$chr(124))
+  set -n $varname_global(topics_history_ $+ %chan,$ctime) $replacex($1-,$chr(1),$chr(124))
 }
 alias remove_oldest_topic {
   var %chan = #$$1
@@ -94,16 +95,16 @@ alias remove_oldest_topic {
   var %newtime = 0
   :loop
   inc %i
-  %newctime = $gettok($var($varname_global(topic_history_ $+ %chan,*),%i),-1,35)
+  %newctime = $gettok($var($varname_global(topics_history_ $+ %chan,*),%i),-1,35)
   if (%newctime == $null) { goto end }
   if (%newctime >= %oldctime) { %oldctime = %newctime }
   goto loop
   :end
-  if (%oldctime) { unset $varname_global(topic_history_ $+ %chan,%oldctime)  }
+  if (%oldctime) { unset $varname_global(topics_history_ $+ %chan,%oldctime)  }
 }
 alias topic_history_pops {
-  if ($var($varname_global(topic_history_ $+ $$chan,*),$1) == $null) { halt }
-  var %pop = $var($varname_global(topic_history_ $+ $active,*),$1).value
+  if ($var($varname_global(topics_history_ $+ $$chan,*),$1) == $null) { halt }
+  var %pop = $var($varname_global(topics_history_ $+ $active,*),$1).value
   if (!%pop) { return }
   if ($prop == topic) { return %pop }
   var %pop = $strip(%pop)
