@@ -66,9 +66,9 @@ alias sreq {
   sreq $1-
 }
 alias -l Pync_set_app {
+  if ($version < 7.50) { set %Pync_app Adiirc }
+  if ($version > 7.50) { set %Pync_app mIRC }
   if (adiirc isin $mircexe) { set %Pync_app Adiirc }
   if (mirc isin $mircexe) { set %Pync_app mIRC }
-  if ($version < 7.0) { set %Pync_app Adiirc }
-  if ($version > 7.0) { set %Pync_app mIRC }
   background -mf $qt($scriptdirBauderr\images\background.jpg)
 }

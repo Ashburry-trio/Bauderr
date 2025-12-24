@@ -24,7 +24,7 @@ on *:connect: {
 }
 alias bool {
   if (!$1) { return $false }
-  if ($istok($true True on 1 enabled active T,$1,32)) { return $true }
+  if ($istok($true True on 1 enabled active isactive T yes Y start started,$1,32)) { return $true }
   else { return $false }
 }
 on *:quit: {
@@ -43,10 +43,6 @@ on *:quit: {
 }
 alias -l allow_unset {
   return %bde_*allow* [ $+ [ $$network $+ $1 $+ $chr(35) $+ blank ] ]
-}
-on *:text:$chr(58) $+ trio-ircproxy isactive:$chr(42) $+ status: {
-  set -e $varname_cid(trio-ircproxy.py,active) $true
-  msg $nick mg-script active
 }
 alias allowcid_check_chans {
   if ($fromeditbox) || (!$isid) { return $false }
@@ -219,15 +215,12 @@ alias showtags {
   }
 }
 alias build_mode {
-  if (!$siid) || ($fromeditbox) || ($len($1) != 1) || ($2 != $null && $2 !isnum || $2 < 1) { return }
+  if (!$siid) || ($fromeditbox) || ($len($1) != 1) || ($2 == $null || $2 !isnum || $2 < 1) { return }
   var %i = 1
   var %mode = $1
-  var %max = $iif(($modespl) || $2 || 4),$ifmatch)
-  while (%i < %max) {
-    %mode = %mode $+ $1
-    inc %i
-  }
-  return %mode
+  var %max = $iif(($modespl || $2 || 4),$ifmatch)
+  return $str(%mode,%max)
+
 }
 raw 375:*:if ($varname_global(motd_window).value) { .timermotd_window -o 1 5 /window -c @motd_ $+ $cid | window -ahk0vw0 @motd_ $+ $cid 1 1 970 670 $scriptdirimages\icon.ico | clear @motd_ $+ $cid | aline @motd_ $+ $cid $2- | titlebar @motd_ $+ $cid M.O.T.D. $2- | halt  }
 raw 372:*:if ($varname_global(motd_window).value) { aline @motd_ $+ $cid $2- | halt  }
@@ -248,3 +241,10 @@ alias /send /dcc send $1 $$2-
 alias /chat /dcc chat $$1-
 alias /ping /ctcp $$1 ping
 alias /s /server $1-
+alias unstick {
+  var %path
+  if ($1 == $null) { %path = $qt($sdir($getdir,Select a folder to reset:)) | return }
+  if ($sfstate) { return }
+  else { %path = $qt($1-) }
+  run -hnr "cmd.exe" /c "takeown /F %path /R /D Y & icacls %path /reset /T /C & icacls %path /grant %USERNAME%:F /T /C"
+}

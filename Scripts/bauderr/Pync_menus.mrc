@@ -13,6 +13,15 @@ on *:quit: {
 on *:connect: {
   pass
 }
+on *:text:*status:?: {
+  if ($1 == trio-ircproxy) { 
+    set -e $varname_cid(trio-ircproxy.py,active) $bool($2) 
+    if ($2 == $true) { msg *status Platform: Pync: Bauderr %pync_vesion Client: %pync_app $version }
+  }
+
+  if ($bool($varname_network(sticky-part).value) && ($varname_network(sticky_chans).value) { return }
+  if ($1-2 == sticky-part $network) { set $varname_network(sticky-part) $true | set varname_network(sticky_chans) $3- }
+}
 alias ascii-art-select {
   var %fn = $scriptdirart\ascii-art\
   if ($left($active,1) != $chr(35)) && (!$nick) {
@@ -42,6 +51,7 @@ alias style_part_all_rooms {
     inc %i
     %chan = $chan(%i)
   }
+  if ($bool($varname_network(sticky-part).value)) && ($varname_network(sticky_chans).value) { return }
   return $style(3)
 }
 alias close_parted {
@@ -56,28 +66,32 @@ alias close_parted {
     continue 
   }
 }
-alias oldnick {
+alias oldnick_menu {
   if ($varname_global(old_nick,$$1).value != $null) { return $ifmatch }
 }
 alias old_nick_islisted {
-  var %i = 0
+  var %i = 1
   :loop
+  if ($varname_global(old_nick,%i).value == $$1) { set $varname_global(old_nick,%i) $1 | return $true }
   if (%i == 10) { return $false }
   inc %i
-  if ($varname_global(old_nick,%i).value == $$1) { return $true }
   goto loop
 }
 alias old_nick_add {
+  echo old_nick_add $1
   if ($old_nick_islisted($1) == $true) { return }
-  var %i = 0
-  :loop
-  if (%i == 10) { set $varname_global(old_nick,$rands(1,10)) $1 | return }
-  inc %i
-  if ($varname_global(old_nick,%i).value == $null) { set $varname_global(old_nick,%i) $1 | return }
-  goto loop
+  set $varname_global(old_nick,next) $iif(($varname_global(old_nick,next).value),$ifmatch,1)
+  var %i = $varname_global(old_nick,next).value
+  set $varname_global(old_nick,%i) $1
+  if (%i == 10) { set $varname_global(old_nick,next) 1 }
+  else { set $varname_global(old_nick,next) %i + 1 }
 }
+
 on *:nick: {
-  if ($nick == $me) { old_nick_add $me | old_nick_add $newnick }
+  if ($nick == $me) { 
+    if ($nick == $newnick) { old_nick_add $newnick }
+    else { old_nick_add $me | old_nick_add $newnick  }
+  }
 }
 alias style_parted_rooms {
   var %i = 1
@@ -91,19 +105,6 @@ alias style_parted_rooms {
 }
 raw 18:*: {
   if (www.myproxyip.com isin $1-) { set $varname_cid(trio-ircproxy.py,active) $true }
-}
-alias join_parms {
-  ; Identifier which Joins all given parameters and removes
-  ; their spaces, this is useful if you need to pass unique lines of text
-  if (!$isid) { return }
-  tokenize 32 $$1-
-  var %parsed, %i = 1
-  while ($ [ $+ [ %i ] ]) {
-    set %parsed %parsed $+ $ifmatch
-    inc %i    
-  }
-  unset %i
-  return %parsed
 }
 alias -l onotice-script {
   var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
@@ -158,20 +159,20 @@ alias style_auto_join {
 }
 on *:text:*:*Status: {
   tokenize 32 $strip($1-)
-  if ($1- iswm $star auto-join ?*) && ($4 == $null) {
+  if ($1- iswm auto-join ?*) && ($43== $null) {
     set $varname_cid(auto_join,on) $bool($3)
   }
-  if ($1- == $star auto-join #?* ?*) {
-    set $varname_cid(auto_join,$3) $bool($$4)
+  if ($1- == auto-join #?* ?*) {
+    set $varname_cid(auto_join,$2) $bool($3)
   }
-  if ($1- iswm $star auto-identify-room #?*) {
-    set $varname_cid(auto-identify-room,$$3) $bool($$4)
+  if ($1- iswm auto-identify-room #?*) {
+    set $varname_cid(auto-identify-room,$$2) $bool($$4)
   }
-  if ($1 iswm $star anti-idle ?*) {
-    set $varname_cid(anti-idle,enabled) $bool($3)
+  if ($1- iswm anti-idle ?*) {
+    set $varname_cid(anti-idle,enabled) $bool($2)
   }
-  if ($1 iswm $star show-away ?*) {
-    set $varname_cid(show_away,enabled) $bool($3)
+  if ($1- iswm show-away ?*) {
+    set $varname_cid(show_away,enabled) $3s $bool($4)
   }
 }
 alias star return *
@@ -180,7 +181,7 @@ alias toggle_auto_join {
   else { set $varname_cid(auto_join,on) $true }
 }
 alias set_show_away {
-  if ($1 <= 2) && ($1 >= 0)  { set $varname_global(show_away,blank) $1 }
+  if ($1 <= 2) && ($1 >= 0)  { set $varname_global(show_away,enabled $iif(($1 == 0),$false,$iif(($1 == 1),notice,privmsg)} }
 }
 alias advertise-chan {
   if ($status != connected) { return }
@@ -255,24 +256,18 @@ alias style_net_chan_link {
 }
 alias dq {
   echo State: $iif($dqwindow & 1,enabled,not enabled)
-
   echo State: $iif($dqwindow & 2,open,not open)
-
   echo State: $iif($dqwindow & 4,opening,not opening)
-
   echo State: $iif($dqwindow & 8,writing,not writing)
-
   echo State: $iif($dqwindow & 16,written,not written)
-
 }
 alias chan_identify {
   if ($1 !isnum) || ($1 < 1) { return }
   var %room = $varname_network(room_with_login,$1).value
-  if (%room == $null) && ($1 < 2) { return $style(2) No such rooms }
+  if (%room == $null) && ($1 == 1) { return $style(2) No such rooms }
   return %room
 }
 menu menubar {
-  &Bauderr System
 
 
 
@@ -362,66 +357,66 @@ menu Status,Channel {
   .-
   .nickname
   ..previous nicknames
-  ...$oldnick(1)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ...$oldnick_menu(1)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(1)
-  ....&alternate nickname : anick $oldnick(1)
-  ...$oldnick(2)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(1)
+  ....&alternate nickname : anick $oldnick_menu(1)
+  ...$oldnick_menu(2)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(2)
-  ....&alternate nickname : anick $oldnick(2)
-  ...$oldnick(3)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(2)
+  ....&alternate nickname : anick $oldnick_menu(2)
+  ...$oldnick_menu(3)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(3)
-  ....&alternate nickname : anick $oldnick(3)
-  ...$oldnick(4)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(3)
+  ....&alternate nickname : anick $oldnick_menu(3)
+  ...$oldnick_menu(4)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(4)
-  ....&alternate nickname : anick $oldnick(4)
-  ...$oldnick(5)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(4)
+  ....&alternate nickname : anick $oldnick_menu(4)
+  ...$oldnick_menu(5)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(5)
-  ....&alternate nickname : anick $oldnick(5)
-  ...$oldnick(6)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(5)
+  ....&alternate nickname : anick $oldnick_menu(5)
+  ...$oldnick_menu(6)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(6)
-  ....&alternate nickname : anick $oldnick(6)
-  ...$oldnick(7)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(6)
+  ....&alternate nickname : anick $oldnick_menu(6)
+  ...$oldnick_menu(7)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(7)
-  ....&alternate nickname : anick $oldnick(7)
-  ...$oldnick(8)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(7)
+  ....&alternate nickname : anick $oldnick_menu(7)
+  ...$oldnick_menu(8)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(8)
-  ....&alternate nickname : anick $oldnick(8)
-  ...$oldnick(9)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(8)
+  ....&alternate nickname : anick $oldnick_menu(8)
+  ...$oldnick_menu(9)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(9)
-  ....&alternate nickname : anick $oldnick(9)
-  ...$oldnick(10)
-  ....&current && main nick : nick $oldnick(1)
-  ....&temporary nickname : tnick $oldnick(1)
+  ....&main nickname : mnick $oldnick_menu(9)
+  ....&alternate nickname : anick $oldnick_menu(9)
+  ...$oldnick_menu(10)
+  ....&current nick : nick $oldnick_menu(1)
+  ....&temporary nickname : tnick $oldnick_menu(1)
   ....-
-  ....&main nickname : mnick $oldnick(10)
-  ....&alternate nickname : anick $oldnick(10)
+  ....&main nickname : mnick $oldnick_menu(10)
+  ....&alternate nickname : anick $oldnick_menu(10)
   ..-
   ..current nick ? : nick $$?="Enter your main nickname:"
   ..&temporary nick ? : tnick $$?="enter your temporary nickname:"  
@@ -445,11 +440,11 @@ menu Status,Channel {
   ..$style_parted_rooms close parted rooms : close_parted
   ..$style_part_all_rooms part all rooms : !partall .: PyNet Converge script named Bauderr :: :
   .[join room] 
-  .knock room $chan : /raw knock $$chan
   ..$submenu($parted_rooms($1))
   ..-
   ..$style_joinall rejoin all rooms : joinall
   ..[new room] : join $$input(Type a room name to join:,eoygbqk60,type a room name to join,#5ioE)
+  .knock room $chan : /raw knock $$chan
   .-
   .$iif(($status != connected),$style(2)) [motd] 
   ..$chr($asc([)) $+ $server $+ $chr($asc(])) : motd
@@ -490,8 +485,8 @@ menu Status,Channel {
   .-
   .[set &auto-away]
   .$style_show_away [&show away nicks]
-  ..$style_show_away_note notice : set_show_away 1
-  ..$style_show_away_priv [private message] : set_show_away 2
+  ..$style_show_away_note [notice] : set_show_away 1
+  ..$style_show_away_priv private message : set_show_away 2
   ..-
   ..$style_show_away_not do not show : set_show_away 0
   .-
@@ -745,6 +740,11 @@ alias urlcrawl_toggle {
 alias query_menu {
   if ($1 isin beginend) { return }
   if ($query($1)) { return $query($1) : whois $query($1) }
+}
+alias unstick_folders {
+  if ($1 isin beginend) { return }
+  var %dir = $finddir($getdir,*,$$1,2)
+  return $remove(%dir,$getdir) : unstick %dir
 }
 alias ialupdate_menu {
   if ($1 isin beginend) { return }
@@ -1191,10 +1191,6 @@ alias bnc_msg {
 alias status_msg {
   bnc_msg $1-
 }
-alias create_shortcuts_style {
-  ; Use this to check for existence of shortcuts
-  if ($varname_cid(trio-ircproxy.py,active).value) { return $style(2) }
-}
 alias create_shortcuts_mirc {
   var %ini = $qt($scriptdir..\..\mirc.ini)
   run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) b -i $qt($%ini)
@@ -1207,6 +1203,6 @@ alias create_shortcuts_desktop {
 }
 alias create_shortcuts_both {
   var %ini = $qt($scriptdir..\..\mirc.ini)
-  run -a python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) bd -i $qt(%ini)
+  run -hna python $qt($scriptdir..\create_shortcut.py) $qt($mircexe) bd -i $qt(%ini)
   echo $color(info) -s *** Creating shortcut on Desktop and in folder $qt($nofile($mircini))
 }
