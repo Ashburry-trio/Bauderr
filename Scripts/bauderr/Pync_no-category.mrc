@@ -229,9 +229,11 @@ alias build_mode {
   }
   return %mode
 }
-
+raw 375:*:if ($varname_global(motd_window).value) { .timermotd_window -o 1 5 /window -c @motd_ $+ $cid | window -ahk0vw0 @motd_ $+ $cid 1 1 970 670 $scriptdirimages\icon.ico | clear @motd_ $+ $cid | aline @motd_ $+ $cid $2- | titlebar @motd_ $+ $cid M.O.T.D. $2- | halt  }
+raw 372:*:if ($varname_global(motd_window).value) { aline @motd_ $+ $cid $2- | halt  }
+raw 376:*:if ($varname_global(motd_window).value) { aline @motd_ $+ $cid $2- | window -r @motd_ $+ $cid 1 1 970 670 | .timermotd_window off | halt }
 alias /j {
-  if (($active ischan) && ($1 !ischan) || (((part isin $chan($chan).status) || (kick isin $chan($chan).status))) { join $active $1- }
+  if (($active ischan) && ($1 !ischan) && ((part isin $chan($chan).status) || (kick isin $chan($chan).status)) { join $active $1- }
   else { /join #$$1- }
 }
 alias /p if ($left($1,1) isin $chantypes) { /part $$1- | return } | if ($active ischan) { /part # $1- }

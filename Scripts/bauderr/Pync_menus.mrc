@@ -119,7 +119,6 @@ alias -l omsg-script {
   %room = $gettok(%room,1,32)
   var %msg = $$input(Enter your message to all chan-ops in %room $+ :,eygbqk60,Enter your message to all chan-ops in %room,:: : Pync script : .)
   !omsg %room %msg
-  unset %room, %msg
 }
 
 alias parted_rooms {
@@ -129,7 +128,6 @@ alias parted_rooms {
   elseif ($chan($1).status == parted) { return $chan($1) $block(parted) : join $chan($1) }
   else { return - }
 }
-
 alias joinall {
   var %i = 1, %chan_c = 0
   while ($chan(%i)) {
@@ -273,6 +271,12 @@ alias chan_identify {
   if (%room == $null) && ($1 < 2) { return $style(2) No such rooms }
   return %room
 }
+menu menubar {
+  &Bauderr System
+
+
+
+}
 menu Status,Channel {
   $chr(46) $chr(58) PyNet Converge $str($chr(58),2) $chr(58)
   .$style_proxy $chr(46) $chr(58) describe pync $str($chr(58),2) $chr(58)
@@ -359,58 +363,81 @@ menu Status,Channel {
   .nickname
   ..previous nicknames
   ...$oldnick(1)
-  ....main nickname : mnick $oldnick(1)
-  ....alternate nickname : anick $oldnick(1)
-  ....temporary nickname : tnick $oldnick(1)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(1)
+  ....&alternate nickname : anick $oldnick(1)
   ...$oldnick(2)
-  ....main nickname : mnick $oldnick(2)
-  ....alternate nickname : anick $oldnick(2)
-  ....temporary nickname : tnick $oldnick(2)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(2)
+  ....&alternate nickname : anick $oldnick(2)
   ...$oldnick(3)
-  ....main nickname : mnick $oldnick(3)
-  ....alternate nickname : anick $oldnick(3)
-  ....temporary nickname : tnick $oldnick(3)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(3)
+  ....&alternate nickname : anick $oldnick(3)
   ...$oldnick(4)
-  ....main nickname : mnick $oldnick(4)
-  ....alternate nickname : anick $oldnick(4)
-  ....temporary nickname : tnick $oldnick(4)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(4)
+  ....&alternate nickname : anick $oldnick(4)
   ...$oldnick(5)
-  ....main nickname : mnick $oldnick(5)
-  ....alternate nickname : anick $oldnick(5)
-  ....temporary nickname : tnick $oldnick(5)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(5)
+  ....&alternate nickname : anick $oldnick(5)
   ...$oldnick(6)
-  ....main nickname : mnick $oldnick(6)
-  ....alternate nickname : anick $oldnick(6)
-  ....temporary nickname : tnick $oldnick(6)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(6)
+  ....&alternate nickname : anick $oldnick(6)
   ...$oldnick(7)
-  ....main nickname : mnick $oldnick(7)
-  ....alternate nickname : anick $oldnick(7)
-  ....temporary nickname : tnick $oldnick(7)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(7)
+  ....&alternate nickname : anick $oldnick(7)
   ...$oldnick(8)
-  ....main nickname : mnick $oldnick(8)
-  ....alternate nickname : anick $oldnick(8)
-  ....temporary nickname : tnick $oldnick(8)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(8)
+  ....&alternate nickname : anick $oldnick(8)
   ...$oldnick(9)
-  ....main nickname : mnick $oldnick(9)
-  ....alternate nickname : anick $oldnick(9)
-  ....temporary nickname : tnick $oldnick(9)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(9)
+  ....&alternate nickname : anick $oldnick(9)
   ...$oldnick(10)
-  ....main nickname : mnick $oldnick(10)
-  ....alternate nickname : anick $oldnick(10)
-  ....temporary nickname : tnick $oldnick(10)
+  ....&current && main nick : nick $oldnick(1)
+  ....&temporary nickname : tnick $oldnick(1)
+  ....-
+  ....&main nickname : mnick $oldnick(10)
+  ....&alternate nickname : anick $oldnick(10)
   ..-
-  ..main nick ? : mnick $$?="enter your main nickname:"
-  ..alternate nick ? : anick $$?="enter your alternate nickname:"
-  ..temporary nick ? : tnick $$?="enter your temporary nickname:"
-  .[spoof email && name]
-  ..[emailaddr] : /emailaddr bauderr-script
-  ..[fullname] : /fullname .: bauderr-script :: : @ https://www.MyProxyIP.com/
+  ..current nick ? : nick $$?="Enter your main nickname:"
+  ..&temporary nick ? : tnick $$?="enter your temporary nickname:"  
+  ..&main nick ? : mnick $$?="enter your main nickname:"
+  ..&alternate nick ? : anick $$?="enter your alternate nickname:"
+  .[&set email && name]
+  ..&email addr : /emailaddr bauderr-script
+  ..&fullname : /fullname .: bauderr-script :: : @ www.MyProxyIP.com
   ..-
-  ..[set both] : /emailaddr bauderr-script | /fullname .: bauderr-script :: : @ https://www.MyProxyIP.com/
+  ..[&set both] : /emailaddr bauderr-script | /fullname .: bauderr-script :: : @ www.MyProxyIP.com
   .-
-  .exit : exit
+  .&reset idle $block($duration($idle)) : /resetidle $?="enter number of seconds:"
   .-
-  .reset idle $block($duration($idle)) : /resetidle $?="enter number of seconds:"
+  .&exit %pync_app
+  ..exit : exit -n
+  ..restart : exit -nr
   &server cmnds
   .part room
   ..$submenu($menu_parted($1))
@@ -418,6 +445,7 @@ menu Status,Channel {
   ..$style_parted_rooms close parted rooms : close_parted
   ..$style_part_all_rooms part all rooms : !partall .: PyNet Converge script named Bauderr :: :
   .[join room] 
+  .knock room $chan : /raw knock $$chan
   ..$submenu($parted_rooms($1))
   ..-
   ..$style_joinall rejoin all rooms : joinall
@@ -430,13 +458,28 @@ menu Status,Channel {
   ..on connect
   ...$iif($proxy_style,$ifmatch,$iif($varname_global(on-connect,show-motd).value == mypyip,$style(1))) [show MyProxyIP.com] : msg *status on-connect show-motd mypyip
   ...$iif($proxy_style,$ifmatch,$iif($varname_global(on-connect,show-motd).value != mypyip,$style(1))) show irc server : msg *status on-connect show-motd
+  ...-
+  ...$iif($proxy_style,$ifmatch,$iif(($bool($varname_global(motd_window).value)),$style(1))) show in custom window : set $varname_global(motd_window) $iif(($bool($varname_global(motd_window).value)),$false,$true)
   .-
   .whois query
   ..$submenu($query_menu($1))
   .-
-  .lusers : lusers
-  .links : links
+  .&basic
+  ..help 
+  ...help : raw help
+  ...help help : raw help help
+  ...helpop : raw helpop
+  ..-
+  ..info : raw info
+  ..time : raw time
+  ..-
+  ..users : raw users
+  ..long users : raw lusers
+  ..-
+  .server links : links
   .[list rooms] : list
+  .-
+  .show motd @window : set $varname_global(motd_window) $true
   .-
   .quit : quit : :: Trio-ircproxy.py & PyNet Converge script named Bauderr : .  
   -
@@ -649,6 +692,20 @@ menu Status,Channel {
   ..192.168.0.17 +6697 : /proxy off | /server 192.168.0.17:+6697 $$?="enter your proxy username and optional @client_name:" $+ / $+ $$?="enter network name to connect to:") $+ : $+ $$?="enter your proxy password:"
   .-
   .without proxy or vhost : /proxy off | /server $server(1, $iif(($network),$network,$$?="enter network name:"))
+}
+menu @motd_?* {
+  close window : window -c $active
+  -
+  [motd] 
+  .$iif(($status != connected),$style(2)) $chr($asc([)) $+ $server $+ $chr($asc(])) : motd
+  .$style_proxy MyProxyIP.com : msg *status show-motd mypyip
+  .-
+  .on connect
+  ..$iif($proxy_style,$ifmatch,$iif($varname_global(on-connect,show-motd).value == mypyip,$style(1))) [show MyProxyIP.com] : msg *status on-connect show-motd mypyip
+  ..$iif($proxy_style,$ifmatch,$iif($varname_global(on-connect,show-motd).value != mypyip,$style(1))) show irc server : msg *status on-connect show-motd
+  ..-
+  ..$iif($proxy_style,$ifmatch,$iif(($bool($varname_global(motd_window).value)),$style(1))) show in custom window : set $varname_global(motd_window) $iif(($bool($varname_global(motd_window).value)),$false,$true)
+
 }
 alias style_sticky_menu {
   return $iif($style_proxy,$iif(($bool($varname_network(sticky-part).value) == $true),$style(3),$style(2)),$iif(($bool($varname_network(sticky-part).value) == $true),$style(2)))

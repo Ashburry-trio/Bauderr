@@ -1,0 +1,1 @@
+﻿%Pync_app=Adiirc
