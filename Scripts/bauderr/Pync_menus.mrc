@@ -655,14 +655,14 @@ menu Status,Channel {
   .$style_auto_ial [&auto update IAL] : toggle_auto_ial
   -
   $style_proxy &network services
-  .$iif($bool($varname_network(auto-identify-room,$active).value) == $true,$style(1),$iif($active !ischan,$style(2))) [&auto-identify room] : msg *Status auto-identify-room $iif($bool($varname_cid(auto-identify-room,$active).value) == $true,remove,add) $active
+  .$iif($style_proxy,$ifmatch,$iif($bool($varname_network(auto-identify-room,$active).value) == $true,$style(1),$iif($active !ischan,$style(2)))) [&auto-identify room] : msg *Status auto-identify-room $iif($bool($varname_cid(auto-identify-room,$active).value) == $true,remove,add) $active
   .$iif($bool($varname_network(auto-identify-nick,$me).value) == $true,$style(1),$style_proxy) [&auto-identify nick] : msg *status auto-identify-nick $iif($bool($varname_cid(auto-identify-nick,$me).value) == $true,remove,add) $me
   .-
   .$style_proxy identify room
   ..$submenu($identify_chans_popup($1))
   ..-
   ..$iif(($style(2) isin $chan_identify(1)),$style(2)) all rooms : msg *status identify-rooms 
-  ..room? : msg *Status identify $$input(Enter a room name and password:,egqd,identify to room?)
+  ..$style_proxy room? : msg *Status identify $$input(Enter a room name and password:,egqd,identify to room?)
   .forget room
   ..$submenu($identify_chans_popup($1))
   .-
@@ -670,11 +670,11 @@ menu Status,Channel {
   .chanserv help : chanserv help
   .X showcommands : msg x showcommands
   .-
-  .identify nick/login : msg *status identify
-  .$iif($active !ischan,$style(2)) identify $active : msg *status identify $active
+  .$style_proxy identify nick/login : msg *status identify
+  .$iif($active !ischan,$style(2),$style_proxy) identify room : msg *status identify $active
   -
   &trio-ircproxy.py
-  .&visit your home-page : proxy_msg visit homepage
+  .&visit your home-page : run https://www.MyProxyIP.com/user/find.html?nick= $+ $me
   .&visit proxy list : run https://www.MyProxyIP.com/proxy.html
   -
   &connect irc

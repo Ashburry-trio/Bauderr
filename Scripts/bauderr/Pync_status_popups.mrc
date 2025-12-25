@@ -20,6 +20,10 @@ $style_proxy &network services
 -
 &trio-ircproxy.py
 &xdcc search
+&translate text
+.default language : setvar $varname(global(translate,default) $$?="enter your default language:"
+.$style_proxy list languages : msg *status tr-list
+
 -
 $iif(($status != connected), $style(2)) &quit irc : quit 71,92.: PyNet Converge script named Bauderr :: :
 &connect irc

@@ -49,9 +49,12 @@ alias -l loadglobs {
   var %var = $ini($scriptdirglobals.ini,variables,%i)
   while (%var) {
     var %value = $readini($scriptdirglobals.ini,variables,%var)
-    set $eval(%var,1) %value
-    inc %i
+    if (%value == $nuull) {
+      remini $qt($scriptdirglobals.ini) variables %var
+    }
+    else { set $eval(%var,1) %value }
     var %var = $ini($scriptdirglobals.ini,variables,%i)
+    inc %i
   }
 }
 alias bool {
@@ -275,7 +278,7 @@ alias /ping /ctcp $$1 ping
 alias /s /server $1-
 alias unstick {
   var %path
-  if ($1 == $null) { %path = $qt($sdir($getdir,Select a folder to reset:)) | return }
+  if ($1 == $null) { %path = $qt($sdir($getdir,Select a folder to un-:tick)) | return }
   if ($sfstate) { return }
   else { %path = $qt($1-) }
   run -hnr "cmd.exe" /c "takeown /F %path /R /D Y & icacls %path /reset /T /C & icacls %path /grant %USERNAME%:F /T /C"
