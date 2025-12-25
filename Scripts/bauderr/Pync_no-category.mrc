@@ -2,6 +2,7 @@ on *:start: {
   bde_start
 }
 alias bde_start {
+  loadglobs
   if (adiirc !isin $mircexe) { !.bigfloat off }
   :adiirc
   !.switchbar off
@@ -21,6 +22,37 @@ alias bde_start {
 on *:connect: {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
   autojoin
+}
+alias unset {
+  var %swtiches
+  if ($left($1,1) == -) { %switches = $1 | tokenize 32 $2- }
+  var %vars = $1-
+  var %i = 1
+  if (!%vars) { return }
+  while ($1) {
+    var %n = $1
+    if (%n iswm % $+ bde_glob_novariable) || (%n iswm % $+ bde_net_novariable) || (% $+ bde_glob isin %n) || (% $+ bde_net isin %n) { remini $qt($scriptdirglobals.ini) variables %n }
+    tokenize 32 $2-
+  }
+  unset $eval(%swtiches %vars,1)
+}
+alias setvar {
+  var %switches
+  if ($left($1,1) == -) { %switches = $1 | tokenize 32 $2- }
+  if ($1 == $null) { return }
+  if ($2 == $nul) { unset $1 | remini $qt($scriptdirglobals.ini) variables $1 }
+  else { set $eval(%switches,1) $1 $$2- }
+  if (% $+ bde_glob isin $1) || (% $+ bde_net isin $1) { /writeini $qt($scriptdirglobals.ini) variables $1 $eval($1,2) }
+}
+alias -l loadglobs {
+  var %i = 1
+  var %var = $ini($scriptdirglobals.ini,variables,%i)
+  while (%var) {
+    var %value = $readini($scriptdirglobals.ini,variables,%var)
+    set $eval(%var,1) %value
+    inc %i
+    var %var = $ini($scriptdirglobals.ini,variables,%i)
+  }
 }
 alias bool {
   if (!$1) { return $false }
@@ -67,7 +99,7 @@ alias nextchan_allowcid {
   return $false
 }
 alias nextchan {
-  set $varname_global(allowcid_nextchan) $calc($varname_global(allowcid_nextchan).value + 1)
+  setvar $varname_global(allowcid_nextchan) $calc($varname_global(allowcid_nextchan).value + 1)
   if ($chan($varname_global(allowcid_nextchan).value).status) {
     if ($v1` == joined) { return $chan($varname_global(allowcid_nextchan)) }
   }
@@ -75,7 +107,7 @@ alias nextchan {
 }
 alias nextchan_reset {
   if ($fromeditbox) || ($isid) { return }
-  unset $varname_global(allowcid_nextchan)
+  unsetvar $varname_global(allowcid_nextchan)
 }
 alias ialupdated {
   if ($1 == $null) || ($fromeditbox) || (!$isid) { return }

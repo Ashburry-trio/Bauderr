@@ -10,7 +10,7 @@ icon_path = icon_path + ',0'
 del script_path
 
 if len(sys.argv) < 2:
-    print("Usage: python create_shortcut.py <path_to_exe> [arguments...]")
+    print("Usage: python create_shortcut.py <path_to_exe> <db> -i ..\mirc.ini")
     sys.exit(1)
 
 all_args = sys.argv[1:]
@@ -46,7 +46,6 @@ if len(args_after) > 1 and 'd' in args_after[0]:
 arguments_str = ""
 if len(args_after) > 1 and args_after[1] == "-i":
     ini_path = " ".join(args_after[2:]).strip('"\'')  # rebuild path
-    Path(ini_path).unlink(missing_ok=True)
     ini_path = str(Path(ini_path).resolve(strict=True))
     arguments_str = f"-i\"{ini_path}\""
 
@@ -76,6 +75,7 @@ if desktop:
         shortcut_path = Path.home() / "OneDrive" / "Desktop" / shortcut_name
     else:
         shortcut_path = Path.home() / "Desktop" / shortcut_name
+    # Path(shortcut_path).unlink(missing_ok=True)
     shortcut = shell.CreateShortCut(str(shortcut_path))
     create()
 
@@ -83,5 +83,6 @@ if desktop:
 
 if bauderr:
     shortcut_path = bauderr + "\\" + shortcut_name
+    # Path(shortcut_path).unlink(missing_ok=True)
     shortcut = shell.CreateShortCut(str(shortcut_path))
     create()

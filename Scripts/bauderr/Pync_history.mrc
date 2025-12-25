@@ -25,8 +25,8 @@ alias style_topic_history_on {
   if (!$style_topic_history_off) { return $style(1) }
 }
 alias topic_history_switch_on {
-  if ($bool($varname_global(topic_history_switch,on).value)) { set $varname_global(topic_history_switch,on) $false | eecho topic history switched [OFF] }
-  else { set $varname_global(topic_history_switch,on) $true | eecho topic history switched [ON] }
+  if ($bool($varname_global(topic_history_switch,on).value)) { setvar $varname_global(topic_history_switch,on) $false | eecho topic history switched [OFF] }
+  else { setvar $varname_global(topic_history_switch,on) $true | eecho topic history switched [ON] }
 
 }
 alias exp_topics {
@@ -56,7 +56,7 @@ on *:topic:#: {
   else { topic_history_add $chan $replacex($1-,$chr(124),$chr(1)) }
 }
 raw 331:*: {
-  /unset $varname_global(topic_history_TEMP_switch,on)
+  /unsetvar $varname_global(topic_history_TEMP_switch,on)
 }
 raw 332:*: {
   /topic_history_add $2 https://www.MyProxyIP.com
@@ -68,7 +68,7 @@ alias topic_history_add {
   var %chan = $1
   tokenize 32 $replacex($2-,$chr(124),$chr(1))
   if ($varname_global(topic_history_switch,on).value == $false) && ($varname_global(topic_history_TEMP_switch,on).value != $true) { return }
-  set $varname_global(topic_history_TEMP_switch,on) $false
+  setvar $varname_global(topic_history_TEMP_switch,on) $false
   exp_topics
   if ($len(%chan) < 2) || ($left(%chan,1) != $chr(35)) { return }
   if ($var($varname_global(topics_history_ $+ %chan,*),0) >= 10) { remove_oldest_topic %chan }
@@ -100,7 +100,7 @@ alias remove_oldest_topic {
   if (%newctime >= %oldctime) { %oldctime = %newctime }
   goto loop
   :end
-  if (%oldctime) { unset $varname_global(topics_history_ $+ %chan,%oldctime)  }
+  if (%oldctime) { unsetvar $varname_global(topics_history_ $+ %chan,%oldctime)  }
 }
 alias topic_history_pops {
   if ($var($varname_global(topics_history_ $+ $$chan,*),$1) == $null) { halt }

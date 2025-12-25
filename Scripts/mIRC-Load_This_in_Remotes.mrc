@@ -4,7 +4,7 @@ on *:signal:baud_unload: {
   var %i = 1
   while ($script(%i)) {
     var %script = $ifmatch
-    if (%script != $script) && (($qt($nofile(%script)) != $qt($scriptdirbauderr\)) && (baFESTuderr isin %script)) || (!$exists(%script)) {
+    if (!$exists(%script)) || (($nofile(%script) != $scriptdirbauderr\) && (Pync_ isin %script)) {
       unload -nrs %script
       continue
     }
@@ -28,11 +28,11 @@ alias baud_load_all {
   load -rs $qt($scriptdirbauderr\Pync_history.mrc)
   load -rs $qt($scriptdirbauderr\Pync_menus.mrc)
   load -rs $qt($scriptdirbauderr\Pync_no-category.mrc)
-  load -ps $qt($scriptdirbauderr\Pync_popups.ini)
-  load -pc $qt($scriptdirbauderr\Pync_popups.ini)
-  load -pq $qt($scriptdirbauderr\Pync_popups.ini)
-  load -pn $qt($scriptdirbauderr\Pync_popups.ini)
-  load -pm $qt($scriptdirbauderr\Pync_popups.ini)
+  load -ps $qt($scriptdirbauderr\popups\Pync_status_popups.mrc)
+  load -pc $qt($scriptdirbauderr\popups\Pync_channel_popups.mrc)
+  load -pq $qt($scriptdirbauderr\popups\Pync_query_popups.mrc)
+  load -pn $qt($scriptdirbauderr\popups\Pync_nicklist_popups.mrc)
+  load -pm $qt($scriptdirbauderr\popups\Pync_menubar_popups.mrc)
   var %fn = Pync_Users-for- $+ %Pync_app $+ .mrc
   var %fn = Pync_Vars-for- $+ %Pync_app $+ .mrc
   if (%Pync_app == adiirc) {
@@ -52,17 +52,13 @@ alias baud_load_all {
   }
 }
 alias creq {
-  if ($2 == auto) {
-    if ($1 == +m) { /set -n %creq +m }
-    elseif ($1 == -m) { /set -n %creq -m }
-  }
+  if ($1 == +m) { /set -n $varname_global(creq) +m }
+  elseif ($1 == -m) { /set -n $varname_global(creq) -m }
   creq $1-
 }
 alias sreq {
-  if ($2 == auto) {
-    if ($1 == +m) { /set -n %sreq +m }
-    elseif ($1 == -m) { /set -n %sreq -m }
-  }
+  if ($1 == +m) { /set -n $varname_global(sreq) +m }
+  elseif ($1 == -m) { /set -n $varname_global(sreq) -m }
   sreq $1-
 }
 alias -l Pync_set_app {
