@@ -3,13 +3,13 @@ Allow naming each client ($ddename) and each session ($cid) in a client so that 
 Strip packet numbers of characters other than numbers. (/msg [EWG]-R-EiN-01 XDCC SEND #511\sd)
 Add number sign (pound) to packet number if it is missing it
 Announce URL head x, such as words under title, desc, other desc, to user or to channel.
-colect passwords for nickserv, chanserv
-prevent passwords from being sent to network or dcc chat
+colect passwords for nickserv, chanserv, X
+prevent passwords from being sent to network or dcc chat, autofill password
 auto-authenticate when changing nick.
 Displays network interface bandwidth usage on the titlebar.
-Forward DCC SEND requests to a different client session of the hive.
+Allow Forward DCC SEND requests to a different client session of the hive.
 Shorten URLs with is.gd or tinyurl
-Display who is targeted when, a yourslef changes other users's status, sets a ban affecting multiple people, or kicks users out; using a wildcard on the chanel name and the user nickname that has a wilcard, will all show there expected results in the window the command is executed in and in *STATUS window.
+Display who is targeted when, a yourself changes other users's status, sets a ban affecting multiple people, or kicks users out; using a wildcard on the chanel name and the user nickname that has a wilcard, will all show there expected results in the window the command is executed in and in *STATUS window.
 Sends machine uptime to current channel. with a .uptime command. It shows the calling users (at first sight) SEEN Time and, the hosting users (yours), BOOT TIME both in weeks, days, hours, mins,sec
 Automatically attempts to regain IRC primary nickname with nickserv commands
 Recover channel operator in empty channel.
@@ -37,3 +37,4 @@ call = client.calls.create(
 )
 
 print(f"Call SID: {call.sid}")
+

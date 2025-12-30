@@ -21,7 +21,7 @@ variables file and load that in one client, and the original variable file in yo
 first client. You will also require a second mirc.ini to save the loaded script files
 in; since you have changed the variables file in your mirc.ini file. Just create a shortcut
 and specify the new mirc-copy.ini file. Type `/help command line` in mIRC/Adiirc to see
-how to do that Set your background of the far-far background to the image in
+how to do that. Set your background of the far-far background to the image in
 `Bauderr\Scripts\bauderr\images\background.jpg`and image-setting to “`normal`” seems
 to work best for me.
 
@@ -45,6 +45,6 @@ and/or `digits`). There is a maximum 10 letters for client name and 15 letters f
 UserName. Client-name is optional and only useful if you use more than one client or 
 use one client more than once. A dcc chat to *Status must be initiated if you connect 
 with a client name. This will allow messages destined to each client instead of each 
-server connection.
+server connection such as messages relevant to a Network.
 
 o   End of Document.

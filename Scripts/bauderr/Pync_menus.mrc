@@ -294,6 +294,8 @@ menu Status,Channel {
   ..everywhere possible : bnc_msg --advertise-everywhere-with-bauderr
   -
   &client cmnds
+  .open downloads : run $getdir
+  .-
   .[auto-join invite]
   ..off : ajinvite off
   ..[on] : ajinvite on

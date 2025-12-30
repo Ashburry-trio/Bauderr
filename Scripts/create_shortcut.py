@@ -1,4 +1,21 @@
 import sys
+import subprocess
+import importlib.util
+
+def pip_install(*packages):
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "--upgrade", *packages
+    ])
+
+def ensure(pkg, pip_name=None):
+    pip_name = pip_name or pkg
+    if importlib.util.find_spec(pkg) is None:
+        pip_install(pip_name)
+
+pip_install("--upgrade", "pip", "setuptools", "wheel")
+ensure("pathlib")
+ensure("pywin32")
+
 from win32com.client import Dispatch
 from pathlib import Path
 

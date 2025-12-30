@@ -2,6 +2,7 @@
 \mirc\
 script1.mrc
 *Downloads*
+*.exe
 *.tm_
 *.log
 *.idea\*
@@ -29,11 +30,8 @@ lib/
 lib64/
 __pycache__/
 __pycache__\
-.mypy_cache/
-.mypy_cache/3.10/
-.mypy_cache/3.7/
-.mypy_cache/3.8/
-*to-do.txt
+.mypy_cache*/
+to-do.txt
 *.c
 *ipython*
 *.db
@@ -134,9 +132,6 @@ venv/
 # docs
 docs/*
 # __pycache__
-trio-ircproxy/scripts/__pycache__/
-trio-ircproxy/scripts/trio_ircproxy/__pycache__/
-trio-ircproxy/scripts/trio_ircproxy/xdcc_manager/__pycache__/
 *__pycache__*
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
