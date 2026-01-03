@@ -4,7 +4,6 @@ on *:start: {
 alias bde_start {
   loadglobs
   if (adiirc !isin $mircexe) { !.bigfloat off }
-  :adiirc
   !.switchbar off
   !.sound on
   !.menubar on
@@ -17,11 +16,12 @@ alias bde_start {
   unset %bde_net_*
   return
   :error
-  goto adiirc
+  unset %bde_cid_*
+  unset %bde_net_*
 }
 on *:connect: {
   .localinfo $iif($varname_global(localinfo,blank).value,$ifmatch,-u)
-  autojoin
+  autojoin -d5
 }
 alias unset {
   var %swtiches
@@ -62,88 +62,9 @@ alias bool {
   if ($istok($true True on 1 enabled active isactive T yes Y start started,$1,32)) { return $true }
   else { return $false }
 }
-on *:quit: {
-  if ($nick != $me) { return }
-  ; DO all the code below in Python and just report in
-  var %i = 1
-  while $chan(%i) {
-    if ($chan(%i).status != joined) { inc %i | continue }
-    if ($allowcid_check_chans($chan(%i)) {
-      .timerallowcid $+ $network $+ $chan(%i) $+ ?blank off
-      return
-    }
-    .timerallowcid $+ $network $+ $chan(%i) -oi 1 25 /unset $allow_unset_var($chan(%i))
-    inc %i
-  }
-}
-alias -l allow_unset {
-  return %bde_*allow* [ $+ [ $$network $+ $1 $+ $chr(35) $+ blank ] ]
-}
-alias allowcid_check_chans {
-  if ($fromeditbox) || (!$isid) { return $false }
-  var %i = 1
-  while ($scid(%i)) {
-    if ($nextchan_allowcid(%i,$1)) {
-      return $true
-    }
-    inc %i
-  }
-  ; Continue
-  return $false
-}
-alias nextchan_allowcid {
-  if ($fromeditbox) || ($isid == $false) { return $false }
-  if ($scid($1) == $cid) { return $false }
-  if ($scid($1).$network != $network) { return $false }
-  nextchan_reset
-  while ($scid($1).$nextchan) {
-    if ($v1 == $2) { /nextchan_reset | return $true }
-  }
-  return $false
-}
-alias nextchan {
-  setvar $varname_global(allowcid_nextchan) $calc($varname_global(allowcid_nextchan).value + 1)
-  if ($chan($varname_global(allowcid_nextchan).value).status) {
-    if ($v1` == joined) { return $chan($varname_global(allowcid_nextchan)) }
-  }
-  else { nextchan_reset | return $false }
-}
-alias nextchan_reset {
-  if ($fromeditbox) || ($isid) { return }
-  unsetvar $varname_global(allowcid_nextchan)
-}
 alias ialupdated {
   if ($1 == $null) || ($fromeditbox) || (!$isid) { return }
   return $iif(($chan($1).ial == $true), - complete, - update ial)
-}
-on *:part:#: {
-  if ($nick != $me) { return }
-  if ($allowcid_check_chans($chan)) { .timerallowcid $+ $network $+ $chan -io 1 25 /unset $allow_unset_var($chan) }
-
-}
-on *:kick:#: {
-  if ($nick != $me) { return }
-  if ($allowcid_check_chans($chan)) { .timerallowcid $+ $network $+ $chan -io 1 25 /unset $allow_unset_var($chan) }
-}
-on *:join:#: {
-  if ($nick != $me) { return }
-  .timerallowcid $+ $network $+ $chan off
-}
-alias qw {
-  ; Is an identifier which takes one string item to quote. Must be an $id.
-  ; First removes all quotes from start and end of string
-  ; Then quotes the string
-  if (!$siid) { return }
-  var %text = $strip($1)
-  var %comp = '"` $crlf $+ $chr(9)
-  while ($left(%text,1) isin %comp) { %text = $right(%text,-1) }
-  while ($right(%text,1) isin %comp) { %text = $left(%text,-1) }
-  return $qt(%text)
-}
-on *:exit: {
-  unset %bde_cid_*
-  unset %bde_net_*
-  unset %bde_*allow*
 }
 alias eecho {
   var %msg
@@ -257,7 +178,7 @@ alias build_mode {
   return $str(%mode,%max)
 
 }
-raw 375:*:if ($varname_global(motd_window).value) { .timermotd_window -o 1 5 /window -c @motd_ $+ $cid | window -ahk0vw0 @motd_ $+ $cid 1 1 970 670 $scriptdirimages\icon.ico | clear @motd_ $+ $cid | aline @motd_ $+ $cid $2- | titlebar @motd_ $+ $cid M.O.T.D. $2- | halt  }
+raw 375:*:if ($varname_global(motd_window).value) { clear @motd_ $+ $cid | .timermotd_window -o 1 10 /window -c @motd_ $+ $cid | window -ahk0vw0 @motd_ $+ $cid 1 1 970 670 $scriptdirimages\icon.ico | clear @motd_ $+ $cid | aline @motd_ $+ $cid $2- | titlebar @motd_ $+ $cid M.O.T.D. $2- | halt  }
 raw 372:*:if ($varname_global(motd_window).value) { aline @motd_ $+ $cid $2- | halt  }
 raw 376:*:if ($varname_global(motd_window).value) { aline @motd_ $+ $cid $2- | window -r @motd_ $+ $cid 1 1 970 670 | .timermotd_window off | halt }
 alias /j {
@@ -278,8 +199,9 @@ alias /ping /ctcp $$1 ping
 alias /s /server $1-
 alias unstick {
   var %path
-  if ($1 == $null) { %path = $qt($sdir($getdir,Select a folder to un-:tick)) | return }
+  if ($1 == $null) { %path = $qt($sdir($getdir,Select a folder to unstick:)) | return }
   if ($sfstate) { return }
   else { %path = $qt($1-) }
   run -hnr "cmd.exe" /c "takeown /F %path /R /D Y & icacls %path /reset /T /C & icacls %path /grant %USERNAME%:F /T /C"
+
 }

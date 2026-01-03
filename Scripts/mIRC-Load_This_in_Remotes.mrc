@@ -67,4 +67,5 @@ alias -l Pync_set_app {
   if (adiirc isin $mircexe) { set %Pync_app Adiirc }
   if (mirc isin $mircexe) { set %Pync_app mIRC }
   background -mf $qt($scriptdirBauderr\images\background.jpg)
+  font -z 10 japaneze text
 }
