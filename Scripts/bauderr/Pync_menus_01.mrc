@@ -23,12 +23,7 @@ alias style_joinall {
   }
   return $style(3)
 }
-alias style_show_away {
-  if ($bool($varname_cid(show_away,enabled).value) == $true) { return $style(1) }
-}
-alias style_auto_join {
-  if ($varname_cid(auto_join,on).value == $true) { return $style(1) }
-}
+
 on *:text:*:*Status: {
   tokenize 32 $strip($1-)
   if ($1- iswm auto-join ?*) && ($43== $null) {
@@ -47,13 +42,29 @@ on *:text:*:*Status: {
     set $varname_cid(show_away,enabled) $3s $bool($4)
   }
 }
+alias t* echo -a T*
 alias star return *
 alias toggle_auto_join {
   if ($varname_cid(auto_join,on).value == $true) { unset $varname_cid(auto_join,on) }
   else { set $varname_cid(auto_join,on) $true }
 }
 alias set_show_away {
-  if ($1 <= 2) && ($1 >= 0)  { setvar $varname_global(show_away,enabled $iif(($1 == 0),$false,$iif(($1 == 1),notice,privmsg)} }
+  setvar $varname_global(show_away,enabled) $iif(($bool($varname_global(show-away,enabled).value)),off,on)
+}
+alias set_show_away_type {
+  setvar $varname_global(show_away,type) $iif(($varname_global(show_away,type).value == privmsg),notice,privmsg}
+}
+alias style_show_away_not {
+  if (!$bool($varname_global(show_away,enabled).value)) { return $style(1) }
+}
+alias style_show_away_yes {
+  if ($bool($varname_global(show_away,enabled).value)) { return $style(1) }
+}
+alias style_show_away_msg {
+  return $iif(($varname_global(show_away,type).value == privmsg),$style(3))
+}
+alias style_show_away_notice {
+  return $iif(($varname_global(show_away,type).value == notice),$style(3))
 }
 alias advertise-chan {
   if ($status != connected) { return }
@@ -139,11 +150,19 @@ alias chan_identify {
   if (%room == $null) && ($1 == 1) { return $style(2) No such rooms }
   return %room
 }
-menu menubar {
-
-
-
+raw 351:*: {
+  if (*UnrealIRCd* iswm $1-) {
+    set $varname_network(ircd) UnrealIRCd
+  }
+  if (*inspIRCd* iswm $1-) {
+    set $varname_network(ircd) inspIRCd
+  }
 }
+alias style_isop_cmode {
+  if (!$chan || $me !isop $chan) { return $style(2) }
+  if ($1 isincs $chan($chan).mode) { return $style(1) }
+}
+
 menu Status,Channel {
   $chr(46) $chr(58) PyNet Converge $str($chr(58),2) $chr(58)
   .$style_proxy $chr(46) $chr(58) describe pync $str($chr(58),2) $chr(58)
@@ -330,7 +349,7 @@ menu Status,Channel {
   .uptime : stats u
   .operator : stats o
   .admins : stats p
-  .userload stats : stats w
+  .userload : stats w
 
   .&silence : var %y = $iif($$?!="Yes = silence $+ $crlf No = un-silence $+ $crlf $+ Yes/No = for the list",+,-) | var %n = $input(Enter a nick or nickmask to silence $+ $crlf $+ or leave blank for list:,eoygbq,Enter a nick or nickmask,nick*!user*@host.???) | silence $iif(%n,%y $+ %n)
   .-
@@ -381,34 +400,15 @@ menu Status,Channel {
     msg *Status anti-idle $iif($bool($varname_cid(anti-idle,$active).value) == $true,off,on)
   }
   .-
-  .[set &auto-away]
-  .$style_show_away [&show away nicks]
-  ..$style_show_away_note [notice] : set_show_away 1
-  ..$style_show_away_priv private message : set_show_away 2
+  .$style_auto_away [set &auto-away]
+  ..set time duration $block($duration($varname_global(auto-away,duration).value)) : setvar_auto_away_duration
   ..-
-  ..$style_show_away_not do not show : set_show_away 0
-  .-
-  .$style_auto_join [auto-join &room]
-  ..$iif(!$chan,$style(2)) [&add this room] : msg *Status auto-join add $network $chan $chan($chan).key
-  ..$iif(!$chan,$style(2)) &remove this room : msg *Status auto-join remove $network $chan
+  ..$style_auto_away_off turn off : setvar $varname_global(auto-away,enabled) $iif($bool($varname_global(auto-away,enabled).value),off,on)
+  .$style_show_away_yes [&show away nicks]
+  ..$style_show_away_notice [notice] : set_show_away
+  ..$style_show_away_msg private message : set_show_away
   ..-
-  ..&add a room : {
-    var %net = $$input(Enter a network:,eygfqda,Auto-join on what network?,all-networks)
-    if (%net == $false) { return }
-    var %chan = #$$input(Enter a room:,eygfqda,Auto-join what room?,$iif($active ischan,$active,$chr(35)))
-    if (%chan == $false) || (%chan == $chr(35)) { return }
-    var %pass = $input(Enter the password if needed:,eygfqda,Does the room need a password?)
-    msg *Status autjoin add %net %chan %pass
-  }
-  ..&remove a room {
-    var %net = $$input(Enter a network:,eygfqda,Remove from which network?,all-networks)
-    if (%net == $false) { return }
-    var %chan = #$$input(Enter a room to remove:,eygfqda,Remove which room?,$iif($active ischan,$active,$chr(35)))
-    if (%chan == $false) || (%chan == $chr(35)) { return }
-    msg *Status autjoin remove %net %chan
-  }
-  ..-
-  ..$style_auto_join [&switch on] : toggle_auto_join
+  ..$style_show_away_not do not show : set_show_away 1
   .-
   .[&ascii-art]
   ..&stop play
@@ -487,27 +487,189 @@ menu Status,Channel {
   ..-
   ..$style_topic_history_off switch off topic history : topic_history_switch_on
   .-
-  .&room-modes
-  ..raw cmode on Rizon | raw help cmode
-  ..$style_isop b - ban user : mode $chan $iif($$?!="Yes = set ban $+ $crlf $+ No = unset ban ",+,-) $+ b $input(Enter the nickmask to (un)ban $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???)
-  ..$style_isop I - invite except : mode $chan $iif($?!="Yes = set invite except $+ $crlf $+ No = unset invite except",+,-) $+ I $input(Enter the nickmask to (un)invite except $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???)
-  ..$style_isop e - ban except : mode $chan $iif($?!="Yes = set ban except $+ $crlf $+ No = unset ban except",+,-) $+ e $input(Enter the nickmask to (un)ban except $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???)
+  .&room modes
+  ..$iif($network != Rizon,$style(2)) Rizon
+  ...$style_isop b - (un)ban user : mode $chan $iif($$?!="Yes = set ban $+ $crlf $+ No = unset ban ",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???))
+  ...$style_isop e - ban except : mode $chan $iif($?!="Yes = set ban except $+ $crlf $+ No = unset ban except",+,-) $+ e $iif($! == $true,$input(Enter the nickmask to (un)ban-except $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???))
+  ...$style_isop I - invite except : mode $chan $iif($?!="Yes = set invite except $+ $crlf $+ No = unset invite except",+,-) $+ I $iif($! == $true,$input(Enter the nickmask to (un)invite-except $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???))
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $input(Enter channel key/password:,egbqd,Key?)
+  ...$style_isop_cmode(m) m - normal users cannot speak : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m 
+  ...$style_isop_cmode(M) &M - normal && unidentified users cannot speak : mode $chan $iif($style_isop_cmode(M) != $style(1),+,-) $+ M
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop_cmode(R) R - only registered nicks join : mode $chan $iif($style_isop_cmode(R) != $style(1),+,-) $+ R
+  ...$style_isop_cmode(r) r - unidentified users may not speak : mode $chan $iif($style_isop_cmode(r) != $style(1),+,-) $+ r
+  ...$style_isop_cmode(N) N - normal users cannot send notices : mode $chan $iif($style_isop_cmode(N) != $style(1),+,-) $+ N
+  ...$style_isop_cmode(C) C - normal users cannot send CTCPs : mode $chan $iif($style_isop_cmode(C) != $style(1),+,-) $+ C
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?,$calc($nick($chan,0) + 5)))
+  ...$style_isop_cmode(B) B - idle/away for 20 minutes cannot hear : mode $chan $iif($style_isop_cmode(B) != $style(1),+,-) $+ B
+  ...$style_isop_cmode(S) S - SSL may only join : mode $chan $iif($style_isop_cmode(S) != $style(1),+,-) $+ S
+  ...$style_isop_cmode(P) P - paranoia mode : mode $chan $iif($style_isop_cmode(P) != $style(1),+,-) $+ P
+  ...$style_isop_cmode(t) t - ops change topic : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+  ...$style_isop_cmode(n) n - no external messages : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private, not show in /whois : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(s) s - secret, not show in /whois nor /list : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
 
-  ..$style_isop m - normal users cannot speak : mode $chan $iif($$?!="Yes = set moderated $+ $crlf $+ No = unset moderated",+,-) $+ m 
-  ..$style_isop &M - normal && unidentified users cannot speak : mode $chan $iif($$?!="Yes = set Modreg $+ $crlf $+ No = unset Modreg",+,-) $+ M
+  ..$iif($network != IRCnet,$style(2)) IRCnet
+  ...$style_isop_cmode(a) a - anonymous room : mode $chan $iif($style_isop_cmode(a) != $style(1),+,-) $+ a
+  ...$style_isop b - (un)set a ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban $+ $crlf $+ leave blank to list:,egbqd,Nickmask?,*!*@*.host.com))_
+  ...$style_isop e - ban exception : mode $chan $iif($?!="Yes = set ban exception $crlf $+ No = unset ban exception",+,-) $+ e $iif($! == $true,$input(Enter the nickmask to (un)ban-except $+ $crlf $+ leave blank to list current hostnames:,egbqd,Nickmask?,*nick*!user??@*host.???))
+  ...$style_isop I - invite exception : mode $chan $iif($?!="Yes = set invite exception $crlf $+ No = unset invite exception",+,-) $+ I $iif($! == $true,$input(Enter the nickmask for invite exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key/password:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?,$calc($nick($chan,0) + 5)))
+  ...$style_isop_cmode(m) m - only voiced users may speak : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(n) n - no external messages : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private, not show in /whois : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(s) s - secret, not show in /whois nor /list : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(t) t - ops change topic : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
 
-  ..$style_isop i - invite only : mode $chan $iif($$?!="Yes = set invite opnly $+ $crlf $+ No = unset invite only",+,-) $+ i
-  ..$style_isop R - only registered nicks join : mode $chan +R
-  ..$style_isop r - unidentified users may not speak : mode $chan +r
-  ..$style_isop N - normal users cannot send notices : mode $chan +N
-  ..$style_isop C - normal users cannot send CTCPs : mode $chan +C
-  ..$style_isop B - `who idle/away for 20 minutes cannot hear : mode $chan +B
-  ..$style_isop S - SSL may only join : mode $chan +S
-  ..$style_isop R - registered only may join : mode $chan +R
-  ..$style_isop P - paranoia mode : mode $chan +P
+  ..$iif($network != EFnet,$style(2)) EFnet
+  ...$style_isop b - (un)set a ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban $+ $crlf $+ leave blank to list bans:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop e - ban exception : mode $chan $iif($?!="Yes = set ban exception $crlf $+ No = unset ban exception",+,-) $+ e $iif($! == $true,$input(Enter the nickmask for ban exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop I - invite exception : mode $chan $iif($?!="Yes = set invite exception $crlf $+ No = unset invite exception",+,-) $+ I $iif($! == $true,$input(Enter the nickmask for invite exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($?!="Yes = set invite only $crlf $+ No = unset invite only",+,-) $+ i
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($?!="Yes = set key/password $crlf $+ No = unset key/password",+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($?!="Yes = set user limit $crlf $+ No = unset user limit",+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - only voiced users may speak : mode $chan $iif($?!="Yes = set moderated $crlf $+ No = unset moderated",+,-) $+ m
+  ...$style_isop_cmode(n) n - no external messages : mode $chan $iif($?!="Yes = set no external $crlf $+ No = unset no external",+,-) $+ n
+  ...$style_isop_cmode(p) p - private, not show in /whois : mode $chan $iif($?!="Yes = set private $crlf $+ No = unset private",+,-) $+ p
+  ...$style_isop_cmode(s) s - secret, not show in /whois nor /list : mode $chan $iif($?!="Yes = set secret $crlf $+ No = unset secret",+,-) $+ s
+  ...$style_isop_cmode(t) t - ops change topic : mode $chan $iif($?!="Yes = set topic lock $crlf $+ No = unset topic lock",+,-) $+ t
 
+  ..$iif($network != DALnet,$style(2)) DALnet
+  ...$style_isop b - (un)set a ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(c) c - no colors : mode $chan $iif($style_isop_cmode(c) != $style(1),+,-) $+ c
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - only voiced users may speak : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(M) M - reg'd only nicks speak : mode $chan $iif($style_isop_cmode(M) != $style(1),+,-) $+ M
+  ...$style_isop_cmode(n) n - no external messages : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private, not show in /whois : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(s) s - secret, not show in /whois nor /list : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(R) R - only registered nicks join : mode $chan $iif($style_isop_cmode(R) != $style(1),+,-) $+ R
+  ...$style_isop_cmode(t) t - ops change topic : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
 
+  ..$iif($network != Libera.Chat,$style(2)) Libera.Chat
+  ...$style_isop b - (un)set a ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(c) c - color filter : mode $chan $iif($style_isop_cmode(c) != $style(1),+,-) $+ c
+  ...$style_isop_cmode(C) C - block CTCPs : mode $chan $iif($style_isop_cmode(C) != $style(1),+,-) $+ C
+  ...$style_isop e - ban exception : mode $chan $iif($?!="Yes = set ban exception $crlf $+ No = unset ban exception",+,-) $+ e $iif($! == $true,$input(Enter the nickmask for ban exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop_cmode(f) f - forward : mode $chan $iif($style_isop_cmode(f) != $style(1),+,-) $+ f $iif($! == $true,$input(Enter forward channel:,egbqd,Channel?,#overflow))
+  ...$style_isop_cmode(F) F - enable forward : mode $chan $iif($style_isop_cmode(F) != $style(1),+,-) $+ F
+  ...$style_isop_cmode(g) g - anyone can invite : mode $chan $iif($style_isop_cmode(g) != $style(1),+,-) $+ g
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop I - invite exception : mode $chan $iif($?!="Yes = set invite exception $crlf $+ No = unset invite exception",+,-) $+ I $iif($! == $true,$input(Enter the nickmask/extban for invite exception:,egbqd,Mask?,$a:username))
+  ...$style_isop_cmode(j) j - join throttle : mode $chan $iif($style_isop_cmode(j) != $style(1),+,-) $+ j $iif($! == $true,$input(Enter throttle (joins:seconds):,egbqd,Throttle?,3:10))
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - moderated : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(n) n - no external messages : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(q) q - quiet : mode $chan $iif($style_isop_cmode(q) != $style(1),+,-) $+ q $iif($! == $true,$input(Enter the nickmask to quiet:,egbqd,Nickmask?,*!*@*.spammer.com))
+  ...$style_isop_cmode(Q) Q - block forwards : mode $chan $iif($style_isop_cmode(Q) != $style(1),+,-) $+ Q
+  ...$style_isop_cmode(r) r - block unreg'd : mode $chan $iif($style_isop_cmode(r) != $style(1),+,-) $+ r
+  ...$style_isop_cmode(R) R - silence unreg'd : mode $chan $iif($style_isop_cmode(R) != $style(1),+,-) $+ R
+  ...$style_isop_cmode(s) s - secret : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(S) S - TLS only : mode $chan $iif($style_isop_cmode(S) != $style(1),+,-) $+ S
+  ...$style_isop_cmode(t) t - topic lock : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+  ...$style_isop_cmode(T) T - block notices : mode $chan $iif($style_isop_cmode(T) != $style(1),+,-) $+ T
+  ...$style_isop_cmode(u) u - unfiltered : mode $chan $iif($style_isop_cmode(u) != $style(1),+,-) $+ u
+  ...$style_isop_cmode(z) z - ops see blocked msgs : mode $chan $iif($style_isop_cmode(z) != $style(1),+,-) $+ z
 
+  ..$iif($network != QuakeNet,$style(2)) QuakeNet
+  ...$style_isop b - (un)ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(D) D - delay joins : mode $chan $iif($style_isop_cmode(D) != $style(1),+,-) $+ D
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - moderated : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(n) n - no external msgs : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(s) s - secret : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(t) t - topic lock : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+
+  ..$iif($network != Freenode (legacy),$style(2)) Freenode (legacy)
+  ...$style_isop b - (un)ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(c) c - color filter : mode $chan $iif($style_isop_cmode(c) != $style(1),+,-) $+ c
+  ...$style_isop_cmode(C) C - block CTCPs : mode $chan $iif($style_isop_cmode(C) != $style(1),+,-) $+ C
+  ...$style_isop_cmode(e) e - ban exception : mode $chan $iif($?!="Yes = set ban exception $crlf $+ No = unset ban exception",+,-) $+ e $iif($! == $true,$input(Enter the nickmask for ban exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop_cmode(f) f - forward : mode $chan $iif($style_isop_cmode(f) != $style(1),+,-) $+ f $iif($! == $true,$input(Enter forward channel:,egbqd,Channel?,#overflow))
+  ...$style_isop_cmode(F) F - enable forward : mode $chan $iif($style_isop_cmode(F) != $style(1),+,-) $+ F
+  ...$style_isop_cmode(g) g - anyone can invite : mode $chan $iif($style_isop_cmode(g) != $style(1),+,-) $+ g
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop I - invite exception : mode $chan $iif($?!="Yes = set invite exception $crlf $+ No = unset invite exception",+,-) $+ I $iif($! == $true,$input(Enter the nickmask for invite exception:,egbqd,Nickmask?,$a:username))
+  ...$style_isop_cmode(j) j - join throttle : mode $chan $iif($style_isop_cmode(j) != $style(1),+,-) $+ j $iif($! == $true,$input(Enter throttle (joins:seconds):,egbqd,Throttle?,3:10))
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - only voiced may speak : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(n) n - no external msgs : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(q) q - quiet : mode $chan $iif($style_isop_cmode(q) != $style(1),+,-) $+ q $iif($! == $true,$input(Enter the nickmask to quiet:,egbqd,Nickmask?,*!*@*.spam.com))
+  ...$style_isop_cmode(Q) Q - block forwards : mode $chan $iif($style_isop_cmode(Q) != $style(1),+,-) $+ Q
+  ...$style_isop_cmode(r) r - block unreg'd : mode $chan $iif($style_isop_cmode(r) != $style(1),+,-) $+ r
+  ...$style_isop_cmode(s) s - secret : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(t) t - topic lock : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+  ...$style_isop_cmode(z) z - reduced mod : mode $chan $iif($style_isop_cmode(z) != $style(1),+,-) $+ z
+
+  ..$iif($network != Undernet,$style(2)) Undernet
+  ...$style_isop b - (un)ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(D) D - delay join : mode $chan $iif($style_isop_cmode(D) != $style(1),+,-) $+ D
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - moderated : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(n) n - no external : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(s) s - secret : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(t) t - topic lock : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+
+  ..$iif($varname_network(ircd).value != inspircd,$style(2)) InspIRCd
+  ...$style_isop_cmode(A) A - anyone can invite : mode $chan $iif($style_isop_cmode(A) != $style(1),+,-) $+ A
+  ...$style_isop b - (un)ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(B) B - block caps : mode $chan $iif($style_isop_cmode(B) != $style(1),+,-) $+ B
+  ...$style_isop_cmode(c) c - no control : mode $chan $iif($style_isop_cmode(c) != $style(1),+,-) $+ c
+  ...$style_isop_cmode(d) d - delay message : mode $chan $iif($style_isop_cmode(d) != $style(1),+,-) $+ d $iif($! == $true,$input(Enter delay in seconds:,egbqd,Seconds?,30))
+  ...$style_isop e - ban exception : mode $chan $iif($?!="Yes = set ban exception $crlf $+ No = unset ban exception",+,-) $+ e $iif($! == $true,$input(Enter the nickmask for ban exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop_cmode(F) F - nick flood : mode $chan $iif($style_isop_cmode(F) != $style(1),+,-) $+ F $iif($! == $true,$input(Enter nick flood (changes:seconds):,egbqd,Nick Flood?,3:60))
+  ...$style_isop_cmode(g) g - word filter : mode $chan $iif($style_isop_cmode(g) != $style(1),+,-) $+ g $iif($! == $true,$input(Enter keyword to block:,egbqd,Keyword?))
+  ...$style_isop_cmode(H) H - history : mode $chan $iif($style_isop_cmode(H) != $style(1),+,-) $+ H $iif($! == $true,$input(Enter history (lines:seconds):,egbqd,History?,50:3600))
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop I - invite exception : mode $chan $iif($?!="Yes = set invite exception $crlf $+ No = unset invite exception",+,-) $+ I $iif($! == $true,$input(Enter the nickmask for invite exception:,egbqd,Nickmask?,*!*@*.example.com))
+  ...$style_isop_cmode(J) J - kick no-rejoin : mode $chan $iif($style_isop_cmode(J) != $style(1),+,-) $+ J $iif($! == $true,$input(Enter seconds before rejoin allowed:,egbqd,Seconds?,30))
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(m) m - moderated : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(n) n - no external : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(p) p - private : mode $chan $iif($style_isop_cmode(p) != $style(1),+,-) $+ p
+  ...$style_isop_cmode(s) s - secret : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(t) t - topic lock : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+
+  ..$iif($varname_network(ircd).value != UnrealIRCd,$style(2)) UnrealIRCd
+  ...$style_isop b - (un)ban : mode $chan $iif($?!="Yes = set ban $crlf $+ No = unset ban",+,-) $+ b $iif($! == $true,$input(Enter the nickmask to (un)ban:,egbqd,Nickmask?,*!*@*.host.com))
+  ...$style_isop_cmode(c) c - no colors : mode $chan $iif($style_isop_cmode(c) != $style(1),+,-) $+ c
+  ...$style_isop_cmode(C) C - no CTCP : mode $chan $iif($style_isop_cmode(C) != $style(1),+,-) $+ C
+  ...$style_isop_cmode(D) D - delay join : mode $chan $iif($style_isop_cmode(D) != $style(1),+,-) $+ D
+  ...$style_isop_cmode(f) f - flood limit : mode $chan $iif($style_isop_cmode(f) != $style(1),+,-) $+ f $iif($! == $true,$input(Enter flood limit (lines:seconds):,egbqd,Flood Limit?,5:10))
+  ...$style_isop_cmode(G) G - censor words : mode $chan $iif($style_isop_cmode(G) != $style(1),+,-) $+ G
+  ...$style_isop_cmode(H) H - history : mode $chan $iif($style_isop_cmode(H) != $style(1),+,-) $+ H $iif($! == $true,$input(Enter history (lines:seconds):,egbqd,History?,50:3600))
+  ...$style_isop_cmode(i) i - invite only : mode $chan $iif($style_isop_cmode(i) != $style(1),+,-) $+ i
+  ...$style_isop_cmode(k) k - key/password : mode $chan $iif($style_isop_cmode(k) != $style(1),+,-) $+ k $iif($! == $true,$input(Enter channel key:,egbqd,Key?))
+  ...$style_isop_cmode(K) K - no knock : mode $chan $iif($style_isop_cmode(K) != $style(1),+,-) $+ K
+  ...$style_isop_cmode(l) l - user limit : mode $chan $iif($style_isop_cmode(l) != $style(1),+,-) $+ l $iif($! == $true,$input(Enter user limit:,egbqd,Limit?))
+  ...$style_isop_cmode(L) L - link/forward : mode $chan $iif($style_isop_cmode(L) != $style(L),+,-) $+ L $iif($! == $true,$input(Enter forward channel:,egbqd,Channel?,#overflow))
+  ...$style_isop_cmode(m) m - moderated : mode $chan $iif($style_isop_cmode(m) != $style(1),+,-) $+ m
+  ...$style_isop_cmode(M) M - reg-only speak : mode $chan $iif($style_isop_cmode(M) != $style(1),+,-) $+ M
+  ...$style_isop_cmode(N) N - no nick change : mode $chan $iif($style_isop_cmode(N) != $style(1),+,-) $+ N
+  ...$style_isop_cmode(n) n - no external : mode $chan $iif($style_isop_cmode(n) != $style(1),+,-) $+ n
+  ...$style_isop_cmode(Q) Q - no kick : mode $chan $iif($style_isop_cmode(Q) != $style(1),+,-) $+ Q
+  ...$style_isop_cmode(R) R - reg'd-only join : mode $chan $iif($style_isop_cmode(R) != $style(1),+,-) $+ R
+  ...$style_isop_cmode(s) s - secret : mode $chan $iif($style_isop_cmode(s) != $style(1),+,-) $+ s
+  ...$style_isop_cmode(S) S - strip colors : mode $chan $iif($style_isop_cmode(S) != $style(1),+,-) $+ S
+  ...$style_isop_cmode(t) t - topic lock : mode $chan $iif($style_isop_cmode(t) != $style(1),+,-) $+ t
+  ...$style_isop_cmode(T) T - no notices : mode $chan $iif($style_isop_cmode(T) != $style(1),+,-) $+ T
+  ...$style_isop_cmode(V) V - no invite : mode $chan $iif($style_isop_cmode(V) != $style(1),+,-) $+ V
+  ...$style_isop_cmode(z) z - TLS only : mode $chan $iif($style_isop_cmode(z) != $style(1),+,-) $+ z
 
   .[&allow prevention]
   ..$style_allow_ascii &allow ascii-art
@@ -609,7 +771,7 @@ menu Status,Channel {
   .without proxy or vhost : /proxy off | /server $server(1, $iif(($network),$network,$$?="enter network name:"))
 }
 alias style_isop {
-  return $iif($chan && ($me !isop $chan),$style(1))
+  return $iif(!$chan || ($me !isop $chan),$style(2))
 }
 alias -l onotice-script {
   var %room = #$$input(Enter a room name to send op-notice to:,eygbqk60m,enter a room name to send op-notice to,select a room,$chan(1),$chan(2),$chan(3),$chan(4),$chan(5),$chan(6),$chan(7),$chan(8),$chan(9),$chan(10),$chan(11),$chan(12),$chan(13),$chan(14),$chan(15))
@@ -644,4 +806,26 @@ alias -l open_allowed_room {
   var %fn = $qw($scriptdirprevention\allowed-room-names.txt)
   if ($exists(%fn) == $false) { write -c %fn }
   run %fn
+}
+alias style_auto_away {
+  return $iif($bool($varname_global(auto-away,enabled).value),$style(1))
+}
+alias style_auto_away_off {
+  return $iif((!$bool($varname_global(auto-away,enabled).value)),$style(1))
+
+}
+
+alias setvar_auto_away_duration {
+  var %t = $input(How long until away is set to enabled,eygbqdm,Auto Away Duration,15 mins,25 mins,45 mins, 1 hour 15 mins,4 hours)
+  var %tt
+  if (%t isnum) { 
+    if (%t < 900) { %t = 900 }
+    var %tt = $duration(%t) 
+  }
+  else {
+    var %tt = $duration(%t)
+    if (%tt < 900) { %tt = 900 }
+    var %tt = $duration(%t)
+  }
+  setvar $varname_global(auto-away,duration) %tt
 }
